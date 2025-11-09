@@ -1,0 +1,18 @@
+# Roadmap MarbleMath
+## Styles and Layout
+- [ ] Make base colors for each tenth group random on init
+- [ ] Adjust gradient for hundreds box (maybe based on tenth rows base colors?)
+- [ ] Fix marble size and color for new marbles (not yet placed in grid). Should be same size as marbles in grid and the same as or similar to ghost marbles.
+- [x] Place target number underneath grid in draw and target modes.
+- [ ] Add some nice visuals to show scored points once score system is implemented
+- [x] Disable text selection on grid to avoid accidental text selection while drawing or dragging.
+- [ ] Add a main menu screen with "Start game" button and some settings.
+- [ ] Display some instructions popup on starting the game and when switching modes.
+- [ ] Don't show thousands position on2 collapsed hundreds boxes after the first 1000 collapse (e.g. 100 instead of 1100).
+
+## Gameplay
+- [ ] Add score system with streaks and multipliers for draw mode
+- [ ] New game mode substractrion. Can be combined with drag and draw modes. Only becomes available when marble count >= e.g. 200 and gets disabled when marble count = 0.
+- [ ] New game mode multiplication: Maybe a mini game popping up in addition mode in between regular gameplay with a multiplication task and the result is susbtracted from the total marbles if solved correctly?
+- [ ] New game mode division: Maybe a mini game popping up in substraction mode in between regular gameplay with a divison task and the result is susbtracted from the total marbles if solved correctly?
+- [ ] New game mode target: Click on the correct box to add or substract X marbles (similar to drag but without dragging and visual representation). The player has to click on the correct target box.

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marble Math</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="game-container">
+      <h1>Marble Math</h1>
+
+      <div class="problem-display">
+        <p id="goal-text" class="goal-text">
+          Goal: Reach <span id="goal-number">100</span> marbles!
+        </p>
+        <p id="current-count" class="current-count">
+          Current: <span id="count-number">0</span> marbles
+        </p>
+      </div>
+
+      <div class="grid-container" id="grid-container">
+        <!-- Rows will be added dynamically here -->
+      </div>
+
+      <div class="marble-group-container">
+        <div id="marble-group-wrapper" class="marble-group-wrapper">
+          <div id="marble-group" class="marble-group">
+            <!-- Marbles to drag will be added here -->
+          </div>
+          <div id="marble-count-indicator" class="marble-count-indicator"></div>
+        </div>
+      </div>
+
+      <div class="target-number-container">
+        <p
+          id="target-number-display"
+          class="target-number-display"
+          style="display: none"
+        >
+          Draw <span id="target-number">0</span> marbles
+        </p>
+      </div>
+
+      <div class="mode-controls">
+        <button id="mode-toggle-btn" class="mode-toggle-btn" disabled>
+          Draw Mode (Locked)
+        </button>
+      </div>
+
+      <div class="controls">
+        <button id="reset-btn">Reset Game</button>
+        <button id="instructions-btn">How to Play</button>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+
+      <div
+        class="instructions-section"
+        id="instructions-section"
+        style="display: none"
+      >
+        <h3>How to Play</h3>
+        <div id="instructions-content">
+          <p>
+            <strong>Drag Mode:</strong> Drag marbles into the grid to build
+            numbers! Watch as 10 rows collapse into hundreds, and 10 hundreds
+            collapse into thousands.
+          </p>
+          <p>
+            <strong>Draw Mode:</strong> Click and drag across empty boxes to
+            draw the target number of marbles!
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="./js/main.js"></script>
+  </body>
+</html>
