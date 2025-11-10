@@ -122,7 +122,7 @@ function addMarblesToBoxes() {
       }
 
       // Collapse rows (animation happens in background)
-      collapseToHundred(gameState.totalMarbles);
+      collapseToHundred(gameState.totalMarbles % 1000);
 
       // After collapse, only the collapsed hundred row exists
       // Set currentRowIndex beyond the array so next marble triggers row creation
