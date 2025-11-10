@@ -1,7 +1,5 @@
 # Roadmap MarbleMath
 ## Styles and Layout
-- [ ] Make base colors for each tenth group random on init
-- [ ] Adjust gradient for hundreds box (maybe based on tenth rows base colors?)
 - [x] Fix marble size and color for new marbles (not yet placed in grid). Should be same size as marbles in grid and the same as or similar to ghost marbles.
 - [x] Place target number underneath grid in draw and target modes.
 - [ ] Add some nice visuals to show scored points once score system is implemented

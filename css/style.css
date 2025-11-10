@@ -27,14 +27,6 @@
   --purple-lighter: #a569bd;
   --purple-dark: #6c3483;
 
-  /* Hundred box colors */
-  --hundred-box-light: #3498db;
-  --hundred-box-dark: #2c3e50;
-
-  /* Thousand box colors */
-  --thousand-box-light: #9b59b6;
-  --thousand-box-dark: #8e44ad;
-
   /* State colors */
   --disabled-gray: #95a5a6;
 
@@ -272,12 +264,12 @@ h1 {
 .hundred-box {
   width: 545px; /* Same as regular row: 10 boxes * 50px + 9 gaps * 5px */
   height: 50px; /* Same as regular box height */
-  border: 2px solid var(--hundred-box-dark);
+  border: 2px solid var(--primary-blue-dark);
   border-radius: 5px;
   background: linear-gradient(
     135deg,
-    var(--hundred-box-light),
-    var(--hundred-box-dark)
+    var(--primary-blue-bright),
+    var(--primary-blue-dark)
   );
   display: flex;
   align-items: center;
@@ -292,12 +284,12 @@ h1 {
 .thousand-box {
   width: 545px; /* Same as regular row: 10 boxes * 50px + 9 gaps * 5px */
   height: 50px; /* Same as regular box height */
-  border: 3px solid var(--thousand-box-dark);
+  border: 3px solid var(--purple);
   border-radius: 5px;
   background: linear-gradient(
     135deg,
-    var(--thousand-box-light),
-    var(--thousand-box-dark)
+    var(--purple-light),
+    var(--purple)
   );
   display: flex;
   align-items: center;
