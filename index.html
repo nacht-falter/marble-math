@@ -7,39 +7,41 @@
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
+    <!-- Streak counter - always visible, aligned with game container -->
+    <div class="streak-counter" id="streak-counter">
+      <div class="streak-content">
+        <span class="fire-icon">🔥</span>
+        <span id="streak-number" class="streak-number">0</span>
+        <span id="streak-target" class="streak-target">/10</span>
+      </div>
+      <div class="streak-progress-bar-container">
+        <div class="streak-progress-bar-fill" id="streak-progress-bar-fill"></div>
+      </div>
+    </div>
+
     <div class="game-container">
       <h1>Marble Math</h1>
-
-      <div class="problem-display">
-        <p id="goal-text" class="goal-text">
-          Goal: Reach <span id="goal-number">100</span> marbles!
-        </p>
-        <p id="current-count" class="current-count">
-          Current: <span id="count-number">0</span> marbles
-        </p>
-      </div>
 
       <div class="grid-container" id="grid-container">
         <!-- Rows will be added dynamically here -->
       </div>
 
-      <div class="marble-group-container">
-        <div id="marble-group-wrapper" class="marble-group-wrapper">
-          <div id="marble-group" class="marble-group">
-            <!-- Marbles to drag will be added here -->
+      <div class="mode-display-container">
+        <div class="marble-group-container">
+          <div id="marble-group-wrapper" class="marble-group-wrapper">
+            <div id="marble-group" class="marble-group">
+              <!-- Marbles to drag will be added here -->
+            </div>
+            <div id="marble-count-indicator" class="marble-count-indicator"></div>
           </div>
-          <div id="marble-count-indicator" class="marble-count-indicator"></div>
         </div>
-      </div>
 
-      <div class="target-number-container">
-        <p
-          id="target-number-display"
-          class="target-number-display"
-          style="display: none"
-        >
-          Draw <span id="target-number">0</span> marbles
-        </p>
+        <div class="target-number-container" style="display: none">
+          <div class="target-number-display" id="target-number-display">
+            <span id="target-number" class="target-number">0</span>
+            <div class="marble marble-icon"></div>
+          </div>
+        </div>
       </div>
 
       <div class="mode-controls">
@@ -53,7 +55,45 @@
         <button id="instructions-btn">How to Play</button>
       </div>
 
-      <div class="feedback" id="feedback"></div>
+      <!-- Mini-game placeholder modal -->
+      <div id="mini-game-modal" class="modal" style="display: none">
+        <div class="modal-content">
+          <h2 id="modal-title">🎉 Mini-Game Unlocked!</h2>
+          <p class="modal-message" id="modal-message">
+            Congratulations! You've reached a 10-streak and unlocked a
+            mini-game!
+          </p>
+          <p class="modal-submessage">
+            Mini-games are coming soon! For now, enjoy your achievement and keep
+            building those streaks!
+          </p>
+          <div class="modal-stats">
+            <p>
+              <strong>Streak:</strong> <span id="modal-streak-count">10</span> correct answers in a row
+            </p>
+            <p><strong>Mini-games unlocked:</strong> <span id="modal-unlocked-count">1</span></p>
+            <p><strong>Next goal:</strong> <span id="modal-next-goal">15</span> streak</p>
+          </div>
+          <button class="modal-close-btn">Continue Playing</button>
+        </div>
+      </div>
+
+      <!-- Milestone prompt modal -->
+      <div id="milestone-modal" class="modal" style="display: none">
+        <div class="modal-content">
+          <h2>🎯 Ready for a Challenge?</h2>
+          <p class="modal-message" id="milestone-message">
+            You've placed 100 marbles! Ready to start the challenge?
+          </p>
+          <p class="modal-submessage">
+            In challenge mode, you'll draw target numbers and build streaks to unlock mini-games!
+          </p>
+          <div class="modal-buttons">
+            <button class="modal-secondary-btn" id="milestone-continue-btn">Not yet, keep practicing</button>
+            <button class="modal-primary-btn" id="milestone-start-btn">Let's go!</button>
+          </div>
+        </div>
+      </div>
 
       <div
         class="instructions-section"

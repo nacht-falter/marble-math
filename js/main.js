@@ -3,7 +3,7 @@ import {
   addMarbles,
   setupDragHandlers,
   setupDrawModeHandlers,
-  toggleMode,
+  startChallenge,
   updateModeUI,
 } from "./modes.js";
 
@@ -12,13 +12,16 @@ const gameState = {
   rows: [],
   totalMarbles: 0,
   currentRowIndex: 0,
-  goals: [100, 500, 1000],
-  currentGoalIndex: 0,
   gameMode: "drag", // 'drag' or 'draw'
-  drawModeUnlocked: true,
   currentTargetNumber: 0,
-  get goal() {
-    return this.goals[this.currentGoalIndex];
+  gamePhase: "practice", // 'practice' or 'active'
+  currentStreak: 0,
+  streakBestRun: 0,
+  miniGamesUnlocked: 0, // Track how many mini-games have been unlocked
+  milestonesShown: [], // Track which milestone prompts have been shown (100, 200, etc.)
+  // Calculate next streak requirement (10, 15, 20, 25, ...)
+  get nextStreakRequirement() {
+    return 10 + (this.miniGamesUnlocked * 5);
   },
 };
 
@@ -50,119 +53,103 @@ function generateRandomShade(baseHue) {
   };
 }
 
-// Update the count display and check for goal completion
+// Update count display
 function updateCountDisplay() {
-  const countNumber = document.getElementById("count-number");
-  if (countNumber) {
-    countNumber.textContent = gameState.totalMarbles;
-  }
-
-  // Check if current goal is reached
-  if (
-    gameState.totalMarbles >= gameState.goal &&
-    gameState.currentGoalIndex < gameState.goals.length
-  ) {
-    showGoalCelebration();
-
-    // Move to next goal if available
-    if (gameState.currentGoalIndex < gameState.goals.length - 1) {
-      gameState.currentGoalIndex++;
-      updateGoalDisplay();
-    }
-  }
+  // Function kept for future count-related logic
 }
 
-// Update the goal display
-function updateGoalDisplay() {
-  const goalNumber = document.getElementById("goal-number");
-  if (goalNumber) {
-    goalNumber.textContent = gameState.goal;
+// Reset streak and update best run if necessary
+function resetStreak() {
+  if (gameState.currentStreak > gameState.streakBestRun) {
+    gameState.streakBestRun = gameState.currentStreak;
   }
+  gameState.currentStreak = 0;
+  updateStreakDisplay();
 }
 
-// Show celebration when goal is reached
-function showGoalCelebration() {
-  const feedback = document.getElementById("feedback");
-  if (feedback) {
-    const currentGoal = gameState.goals[gameState.currentGoalIndex];
-    let message = `Amazing! You reached ${currentGoal} marbles!`;
+// Update streak display
+function updateStreakDisplay(shouldAnimate = false) {
+  const streakNumber = document.getElementById("streak-number");
+  const streakTarget = document.getElementById("streak-target");
+  const streakProgressFill = document.getElementById("streak-progress-bar-fill");
+  const streakCounter = document.getElementById("streak-counter");
 
-    // Check if there's a next goal
-    if (gameState.currentGoalIndex < gameState.goals.length - 1) {
-      const nextGoal = gameState.goals[gameState.currentGoalIndex + 1];
-      message += `\nNext goal: ${nextGoal} marbles!`;
-    } else {
-      message = `INCREDIBLE! You reached ${currentGoal} marbles! You've mastered place value!`;
-    }
+  const nextRequirement = gameState.nextStreakRequirement;
 
-    feedback.textContent = message;
-    feedback.style.display = "block";
-    feedback.classList.add("celebration");
+  if (streakNumber) {
+    streakNumber.textContent = gameState.currentStreak;
+  }
 
-    // Hide after 5 seconds
+  if (streakTarget) {
+    streakTarget.textContent = `/${nextRequirement}`;
+  }
+
+  if (streakProgressFill) {
+    const progress = Math.min((gameState.currentStreak / nextRequirement) * 100, 100);
+    streakProgressFill.style.width = `${progress}%`;
+  }
+
+  // Add bump animation when streak increases
+  if (shouldAnimate && streakCounter && gameState.currentStreak > 0) {
+    streakCounter.classList.add("bump");
     setTimeout(() => {
-      feedback.style.display = "none";
-      feedback.classList.remove("celebration");
-    }, 5000);
+      streakCounter.classList.remove("bump");
+    }, 500);
+  }
+
+  // Update visibility based on game phase and streak
+  if (streakCounter) {
+    if (gameState.currentStreak === 0 && gameState.gamePhase === "practice") {
+      streakCounter.classList.add("hidden");
+    } else {
+      streakCounter.classList.remove("hidden");
+    }
   }
 }
 
-// Show milestone feedback
-function showMilestoneFeedback(milestone) {
-  const feedback = document.getElementById("feedback");
-
-  // Don't show milestone feedback if this is a goal milestone
-  const isGoalMilestone = gameState.goals.includes(milestone);
-
-  if (feedback && !isGoalMilestone) {
-    let message = "";
-    if (milestone % 1000 === 0) {
-      message = `${milestone}! Watch 10 hundreds collapse into one thousand!`;
-    } else if (milestone % 100 === 0) {
-      message = `${milestone}! Watch 10 rows collapse into one hundred!`;
-    }
-
-    if (message) {
-      feedback.textContent = message;
-      feedback.style.display = "block";
-      feedback.classList.add("milestone");
-
-      // Hide after 3 seconds
-      setTimeout(() => {
-        feedback.style.display = "none";
-        feedback.classList.remove("milestone");
-      }, 3000);
-    }
-  }
+// Scroll to bottom of page instantly (no animation to avoid interference)
+function scrollToBottom() {
+  window.scrollTo(0, document.body.scrollHeight);
 }
 
 // Initialize the game with one row
 function initGame() {
   const gridContainer = document.getElementById("grid-container");
   gridContainer.innerHTML = ""; // Clear existing rows
+
+  // Clear marble group
+  const marbleGroup = document.getElementById("marble-group");
+  if (marbleGroup) {
+    marbleGroup.innerHTML = "";
+  }
+
   gameState.rows = [];
   gameState.totalMarbles = 0;
   gameState.currentRowIndex = 0;
-  gameState.currentGoalIndex = 0;
   gameState.gameMode = "drag";
-  // Don't reset drawModeUnlocked - keep initial state for testing
+  gameState.gamePhase = "practice";
+  gameState.currentTargetNumber = 0;
+  gameState.currentStreak = 0;
+  gameState.streakBestRun = 0;
+  gameState.miniGamesUnlocked = 0;
+  gameState.milestonesShown = [];
 
-  // Reset mode toggle button
+  // Initialize "Start Challenge" button
   const modeToggleBtn = document.getElementById("mode-toggle-btn");
   if (modeToggleBtn) {
-    modeToggleBtn.disabled = !gameState.drawModeUnlocked;
-    modeToggleBtn.textContent = gameState.drawModeUnlocked
-      ? "Switch to Draw Mode"
-      : "Draw Mode (Locked)";
+    modeToggleBtn.disabled = false;
+    modeToggleBtn.textContent = "Start Challenge!";
   }
 
   // Update displays
-  updateCountDisplay();
-  updateGoalDisplay();
   updateModeUI();
+  updateStreakDisplay();
 
   addRow();
   addMarbles();
+
+  // Scroll to bottom on init
+  setTimeout(() => scrollToBottom(), 100);
 }
 
 // Start the game when page loads
@@ -179,10 +166,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Setup mode toggle button
+  // Setup start challenge button
   const modeToggleBtn = document.getElementById("mode-toggle-btn");
   if (modeToggleBtn) {
-    modeToggleBtn.addEventListener("click", toggleMode);
+    modeToggleBtn.addEventListener("click", startChallenge);
   }
 
   // Setup instructions toggle button
@@ -206,7 +193,7 @@ export {
   baseColors,
   generateRandomShade,
   updateCountDisplay,
-  updateGoalDisplay,
-  showGoalCelebration,
-  showMilestoneFeedback,
+  resetStreak,
+  updateStreakDisplay,
+  scrollToBottom,
 };

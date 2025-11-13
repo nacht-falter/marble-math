@@ -1,7 +1,9 @@
 import {
   gameState,
   updateCountDisplay,
-  showMilestoneFeedback,
+  resetStreak,
+  updateStreakDisplay,
+  scrollToBottom,
 } from "./main.js";
 
 import {
@@ -81,9 +83,6 @@ function addMarblesToBoxes() {
 
     // Check if we just reached a multiple of 1000 or 100
     if (gameState.totalMarbles % 1000 === 0) {
-      // Show milestone feedback
-      showMilestoneFeedback(gameState.totalMarbles);
-
       // Remove any regular rows that might exist
       const gridContainer = document.getElementById("grid-container");
       const regularRowsToRemove = gameState.rows.filter(
@@ -113,13 +112,8 @@ function addMarblesToBoxes() {
       addRow();
       gameState.currentRowIndex = gameState.rows.length - 1;
     } else if (gameState.totalMarbles % 100 === 0) {
-      // Show milestone feedback
-      showMilestoneFeedback(gameState.totalMarbles);
-
-      // Unlock draw mode on first collapse (at 100)
-      if (gameState.totalMarbles === 100) {
-        unlockDrawMode();
-      }
+      // Show milestone prompt (suggest starting challenge)
+      showMilestonePrompt(gameState.totalMarbles);
 
       // Collapse rows (animation happens in background)
       collapseToHundred(gameState.totalMarbles % 1000);
@@ -160,6 +154,9 @@ function addMarblesToBoxes() {
   // Update the count display
   updateCountDisplay();
 
+  // Scroll to bottom to show newly added marbles
+  setTimeout(() => scrollToBottom(), 100);
+
   // Generate new marbles for the next round
   addMarbles();
 }
@@ -168,10 +165,12 @@ function addMarblesToBoxes() {
 function setupDragHandlers() {
   const marbleGroupWrapper = document.getElementById("marble-group-wrapper");
   const marbleGroup = document.getElementById("marble-group");
+  const marbleGroupContainer = document.querySelector(".marble-group-container");
   let isDragging = false;
   let offsetX = 0;
   let offsetY = 0;
   let temporaryNextRow = null; // Track if we created a temporary next row
+  let currentSplitState = null; // Track current split state to avoid unnecessary updates
 
   // Use capture phase to ensure we catch all mousedown events
   marbleGroupWrapper.addEventListener(
@@ -183,6 +182,13 @@ function setupDragHandlers() {
       offsetY = e.clientY - rect.top;
 
       marbleGroupWrapper.classList.add("dragging");
+
+      // Preserve parent container height to prevent layout shift
+      if (marbleGroupContainer) {
+        const containerHeight = marbleGroupContainer.offsetHeight;
+        marbleGroupContainer.style.height = containerHeight + "px";
+      }
+
       marbleGroupWrapper.style.position = "fixed";
       marbleGroupWrapper.style.zIndex = "1000";
       marbleGroupWrapper.style.pointerEvents = "none"; // Allow detecting elements underneath
@@ -252,12 +258,18 @@ function setupDragHandlers() {
 
     // Reset marble group wrapper position
     isDragging = false;
+    currentSplitState = null; // Reset split state tracking
     marbleGroupWrapper.classList.remove("dragging");
     marbleGroupWrapper.style.position = "";
     marbleGroupWrapper.style.zIndex = "";
     marbleGroupWrapper.style.pointerEvents = "";
     marbleGroupWrapper.style.left = "";
     marbleGroupWrapper.style.top = "";
+
+    // Reset parent container height
+    if (marbleGroupContainer) {
+      marbleGroupContainer.style.height = "";
+    }
   });
 
   function updateSplitVisualization() {
@@ -273,30 +285,46 @@ function setupDragHandlers() {
     const elementUnder = document.elementFromPoint(checkX, checkY);
     const firstEmptyBox = getFirstEmptyBox();
 
+    // Determine the new split state
+    let newSplitState = null;
+
     // Only show split if we're over the correct box
-    if (!firstEmptyBox || elementUnder !== firstEmptyBox.box) {
-      clearSplitVisualization();
+    if (firstEmptyBox && elementUnder === firstEmptyBox.box) {
+      // Calculate how many marbles fit in current row
+      const currentRow = gameState.rows[gameState.currentRowIndex];
+      const emptyBoxesInRow = currentRow.boxes.filter(
+        (box) => !box.hasChildNodes(),
+      ).length;
+      const totalMarbles = marbleGroup.querySelectorAll(".marble").length;
+
+      if (totalMarbles > emptyBoxesInRow) {
+        // Split needed
+        const marblesInFirstRow = emptyBoxesInRow;
+        const marblesInSecondRow = totalMarbles - emptyBoxesInRow;
+        newSplitState = `${marblesInFirstRow}-${marblesInSecondRow}`;
+      } else {
+        // All marbles fit, no split needed
+        newSplitState = "no-split";
+      }
+    } else {
+      // Not over drop target
+      newSplitState = "no-split";
+    }
+
+    // Only update if state changed
+    if (newSplitState === currentSplitState) {
       return;
     }
 
-    // Calculate how many marbles fit in current row
-    const currentRow = gameState.rows[gameState.currentRowIndex];
-    const emptyBoxesInRow = currentRow.boxes.filter(
-      (box) => !box.hasChildNodes(),
-    ).length;
-    const totalMarbles = marbleGroup.querySelectorAll(".marble").length;
+    currentSplitState = newSplitState;
 
-    if (totalMarbles <= emptyBoxesInRow) {
-      // All marbles fit, no split needed
-      clearSplitVisualization();
-      return;
+    if (newSplitState === "no-split" || newSplitState === null) {
+      clearSplitVisualization(false); // Don't remove temporary row during drag
+    } else {
+      // Parse the split state and show visualization
+      const [firstCount, secondCount] = newSplitState.split("-").map(Number);
+      showSplitVisualization(firstCount, secondCount);
     }
-
-    // Split needed - show visual feedback
-    const marblesInFirstRow = emptyBoxesInRow;
-    const marblesInSecondRow = totalMarbles - emptyBoxesInRow;
-
-    showSplitVisualization(marblesInFirstRow, marblesInSecondRow);
   }
 
   function showSplitVisualization(firstCount, secondCount) {
@@ -503,33 +531,6 @@ function setupDragHandlers() {
   }
 }
 
-// Unlock draw mode with celebration
-function unlockDrawMode() {
-  if (gameState.drawModeUnlocked) return;
-
-  gameState.drawModeUnlocked = true;
-
-  // Enable the mode toggle button
-  const modeToggleBtn = document.getElementById("mode-toggle-btn");
-  if (modeToggleBtn) {
-    modeToggleBtn.disabled = false;
-    modeToggleBtn.textContent = "✍️ Switch to Draw Mode";
-  }
-
-  // Show unlock celebration
-  const feedback = document.getElementById("feedback");
-  if (feedback) {
-    feedback.textContent =
-      "✍️ Draw Mode Unlocked! Click the button to try a new challenge!";
-    feedback.style.display = "block";
-    feedback.classList.add("celebration");
-
-    setTimeout(() => {
-      feedback.style.display = "none";
-      feedback.classList.remove("celebration");
-    }, 5000);
-  }
-}
 
 // Generate a new target number for draw mode
 function generateTargetNumber() {
@@ -686,9 +687,6 @@ function getBoxesFromStartToHover(startBox, hoverBox) {
 // Check for collapses at milestones
 function checkForCollapses() {
   if (gameState.totalMarbles % 1000 === 0 && gameState.totalMarbles > 0) {
-    // Show milestone feedback
-    showMilestoneFeedback(gameState.totalMarbles);
-
     // Remove any regular rows that might exist
     const gridContainer = document.getElementById("grid-container");
     const regularRowsToRemove = gameState.rows.filter(
@@ -715,19 +713,100 @@ function checkForCollapses() {
     addRow();
     gameState.currentRowIndex = gameState.rows.length - 1;
   } else if (gameState.totalMarbles % 100 === 0 && gameState.totalMarbles > 0) {
-    // Show milestone feedback
-    showMilestoneFeedback(gameState.totalMarbles);
-
-    // Unlock draw mode on first collapse (at 100)
-    if (gameState.totalMarbles === 100) {
-      unlockDrawMode();
-    }
+    // Show milestone prompt (suggest starting challenge)
+    showMilestonePrompt(gameState.totalMarbles);
 
     // Collapse rows
     collapseToHundred(gameState.totalMarbles);
 
     // Reset row index
     gameState.currentRowIndex = gameState.rows.length;
+  }
+}
+
+// Show milestone prompt when player reaches 100, 200, 300, etc. marbles
+function showMilestonePrompt(marbleCount) {
+  // Only show at multiples of 100, and only in drag mode (practice phase)
+  if (marbleCount % 100 !== 0 || gameState.gameMode !== "drag") {
+    return;
+  }
+
+  // Check if we've already shown this milestone
+  if (gameState.milestonesShown.includes(marbleCount)) {
+    return;
+  }
+
+  // Mark this milestone as shown
+  gameState.milestonesShown.push(marbleCount);
+
+  const modal = document.getElementById("milestone-modal");
+  if (!modal) return;
+
+  // Update message with marble count
+  const message = document.getElementById("milestone-message");
+  if (message) {
+    message.textContent = `You've placed ${marbleCount} marbles! Ready to start the challenge?`;
+  }
+
+  modal.style.display = "flex";
+
+  // Setup button handlers
+  const continueBtn = document.getElementById("milestone-continue-btn");
+  const startBtn = document.getElementById("milestone-start-btn");
+
+  if (continueBtn) {
+    continueBtn.onclick = () => {
+      modal.style.display = "none";
+    };
+  }
+
+  if (startBtn) {
+    startBtn.onclick = () => {
+      modal.style.display = "none";
+      startChallenge();
+    };
+  }
+}
+
+// Show mini-game placeholder when streak requirement is reached
+function showMiniGamePlaceholder() {
+  const modal = document.getElementById("mini-game-modal");
+  if (!modal) return;
+
+  const streakAchieved = gameState.currentStreak;
+  const unlockedCount = gameState.miniGamesUnlocked + 1; // +1 because we're about to unlock one
+  const nextRequirement = 10 + (unlockedCount * 5);
+
+  // Update modal content
+  const modalMessage = document.getElementById("modal-message");
+  const modalStreakCount = document.getElementById("modal-streak-count");
+  const modalUnlockedCount = document.getElementById("modal-unlocked-count");
+  const modalNextGoal = document.getElementById("modal-next-goal");
+
+  if (modalMessage) {
+    modalMessage.textContent = `Congratulations! You've reached a ${streakAchieved}-streak and unlocked a mini-game!`;
+  }
+
+  if (modalStreakCount) {
+    modalStreakCount.textContent = streakAchieved;
+  }
+
+  if (modalUnlockedCount) {
+    modalUnlockedCount.textContent = unlockedCount;
+  }
+
+  if (modalNextGoal) {
+    modalNextGoal.textContent = nextRequirement;
+  }
+
+  modal.style.display = "flex";
+
+  // Close button handler
+  const closeBtn = modal.querySelector(".modal-close-btn");
+  if (closeBtn) {
+    closeBtn.onclick = () => {
+      modal.style.display = "none";
+    };
   }
 }
 
@@ -804,6 +883,24 @@ function fillDrawnBoxes(boxes, isCorrect) {
 
       // Generate new target number
       generateTargetNumber();
+
+      // Scroll to bottom to show newly added marbles
+      setTimeout(() => scrollToBottom(), 100);
+
+      // Update streak (only in active game phase)
+      if (gameState.gamePhase === "active") {
+        gameState.currentStreak++;
+        updateStreakDisplay(true); // Animate on increase
+
+        // Check if we've reached the next streak requirement
+        if (gameState.currentStreak >= gameState.nextStreakRequirement) {
+          setTimeout(() => {
+            showMiniGamePlaceholder();
+            gameState.miniGamesUnlocked++;
+            resetStreak();
+          }, 500);
+        }
+      }
     }, 300);
   } else {
     // Show error feedback
@@ -813,18 +910,9 @@ function fillDrawnBoxes(boxes, isCorrect) {
       boxes.forEach((box) => box.classList.remove("draw-incorrect"));
     }, 500);
 
-    // Show error message
-    const feedback = document.getElementById("feedback");
-    if (feedback) {
-      feedback.textContent = `❌ Oops! You drew ${boxes.length} but needed ${gameState.currentTargetNumber}. Try again!`;
-      feedback.style.display = "block";
-      feedback.style.backgroundColor = "#ffe8e8";
-      feedback.style.border = "2px solid #e74c3c";
-      feedback.style.color = "#c0392b";
-
-      setTimeout(() => {
-        feedback.style.display = "none";
-      }, 2000);
+    // Reset streak on wrong answer (only in active game phase)
+    if (gameState.gamePhase === "active" && gameState.currentStreak > 0) {
+      resetStreak();
     }
   }
 }
@@ -992,16 +1080,18 @@ function ensureEmptyRowBelowLastRow() {
   }
 }
 
-// Toggle between drag and draw modes
-function toggleMode() {
-  if (gameState.gameMode === "drag") {
-    gameState.gameMode = "draw";
-    updateModeUI();
-    generateTargetNumber();
-  } else {
-    gameState.gameMode = "drag";
-    updateModeUI();
+// Start the challenge - one-way transition from drag to draw mode
+function startChallenge() {
+  // Can only start challenge from drag mode
+  if (gameState.gameMode !== "drag") {
+    return;
   }
+
+  // Switch to draw mode and start active game phase
+  gameState.gameMode = "draw";
+  gameState.gamePhase = "active";
+  updateModeUI();
+  generateTargetNumber();
 }
 
 // Update UI based on current mode
@@ -1013,9 +1103,11 @@ function updateModeUI() {
     ".target-number-container",
   );
   const targetDisplay = document.getElementById("target-number-display");
-  const modeToggleBtn = document.getElementById("mode-toggle-btn");
+  const targetNumber = document.getElementById("target-number");
+  const modeControls = document.querySelector(".mode-controls");
 
   if (gameState.gameMode === "draw") {
+    // Draw mode (active phase)
     // Hide marble group container
     if (marbleGroupContainer) marbleGroupContainer.style.display = "none";
 
@@ -1023,22 +1115,23 @@ function updateModeUI() {
     if (targetNumberContainer) targetNumberContainer.style.display = "flex";
 
     // Show target display
-    if (targetDisplay) targetDisplay.style.display = "block";
+    if (targetDisplay) targetDisplay.style.display = "flex";
 
-    // Update button text
-    if (modeToggleBtn) modeToggleBtn.textContent = "Switch to Drag Mode";
+    // Hide challenge button (can't go back to drag mode)
+    if (modeControls) modeControls.style.display = "none";
   } else {
+    // Drag mode (practice phase)
     // Show marble group container
     if (marbleGroupContainer) marbleGroupContainer.style.display = "flex";
 
     // Hide target number container
     if (targetNumberContainer) targetNumberContainer.style.display = "none";
 
-    // Hide target display
-    if (targetDisplay) targetDisplay.style.display = "none";
+    // Clear target number display
+    if (targetNumber) targetNumber.textContent = "0";
 
-    // Update button text
-    if (modeToggleBtn) modeToggleBtn.textContent = "Switch to Draw Mode";
+    // Show "Start Challenge!" button
+    if (modeControls) modeControls.style.display = "flex";
   }
 }
 
@@ -1047,5 +1140,5 @@ export {
   setupDragHandlers,
   setupDrawModeHandlers,
   updateModeUI,
-  toggleMode,
+  startChallenge,
 };

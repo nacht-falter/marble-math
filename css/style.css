@@ -30,11 +30,6 @@
   /* State colors */
   --disabled-gray: #95a5a6;
 
-  /* Celebration colors */
-  --celebration-bg: #fffacd;
-  --celebration-border: #ffd700;
-  --celebration-text: #d4af37;
-
   /* Transparency values */
   --marble-count-bg: rgba(74, 144, 226, 0.1);
   --split-second-bg: rgba(231, 76, 60, 0.1);
@@ -72,49 +67,13 @@ body {
   padding: 30px;
   border-radius: 10px;
   box-shadow: var(--shadow-sm);
+  position: relative;
 }
 
 h1 {
   text-align: center;
   color: var(--text-primary);
   margin-bottom: 20px;
-}
-
-.problem-display {
-  text-align: center;
-  margin-bottom: 30px;
-  font-size: 18px;
-  color: var(--text-secondary);
-}
-
-.problem-display #problem-text {
-  font-size: 16px;
-  line-height: 1.5;
-  margin-bottom: 15px;
-}
-
-.goal-text {
-  font-size: 20px;
-  font-weight: bold;
-  color: var(--text-dark);
-  margin: 10px 0;
-}
-
-.goal-text #goal-number {
-  color: var(--accent-red);
-  font-size: 24px;
-}
-
-.current-count {
-  font-size: 20px;
-  font-weight: bold;
-  color: var(--text-dark);
-  margin: 10px 0;
-}
-
-.current-count #count-number {
-  color: var(--primary-blue-bright);
-  font-size: 24px;
 }
 
 .mode-controls {
@@ -125,6 +84,7 @@ h1 {
 
 .mode-toggle-btn {
   padding: 12px 24px;
+  margin-top: 20px;
   font-size: 18px;
   font-weight: bold;
   background: linear-gradient(135deg, var(--purple-light), var(--purple));
@@ -156,36 +116,44 @@ h1 {
   transform: translateY(0);
 }
 
-.target-number-container {
+.mode-display-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 30px;
   min-height: 100px;
 }
 
-.target-number-display {
-  font-size: 22px;
-  font-weight: bold;
-  color: var(--purple);
-  margin: 15px 0;
-  padding: 10px;
-  background-color: var(--purple-bg-light);
-  border: 2px dashed var(--purple);
-  border-radius: 8px;
-  display: inline-block;
+.target-number-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  flex: 1;
 }
 
-.target-number-display #target-number {
-  color: var(--purple-dark);
-  font-size: 28px;
+.target-number-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.target-number {
+  font-size: 32px;
+  font-weight: bold;
+  color: var(--primary-blue-light);
+}
+
+.target-number-display .marble-icon {
+  width: 40px;
+  height: 40px;
+  font-size: 14px;
 }
 
 .grid-container {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-bottom: 30px;
   padding: 20px;
   background-color: var(--bg-grid);
   border-radius: 8px;
@@ -427,8 +395,7 @@ h1 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 20px;
-  min-height: 100px;
+  width: 100%;
 }
 
 .marble-group-wrapper {
@@ -545,55 +512,260 @@ button:hover {
   background-color: var(--primary-blue-hover);
 }
 
-.feedback {
-  text-align: center;
+/* Streak Counter - Sticky, Aligned with Game Container Right Edge */
+.streak-counter {
+  position: sticky;
+  top: 105px;
+  right: max(calc((100vw - 800px) / 2 + 30px), 30px);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: linear-gradient(135deg, #fff9e6, #ffe680);
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 2px solid #ffb700;
+  box-shadow: 0 3px 8px rgba(255, 183, 0, 0.3);
+  transition: all 0.3s ease;
+  z-index: 1000;
+  width: fit-content;
+  min-width: 100px;
+  margin-left: auto;
+}
+
+.streak-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+
+.streak-counter .fire-icon {
   font-size: 18px;
-  font-weight: bold;
-  min-height: 30px;
-  color: var(--accent-green);
-  display: none;
-  margin-top: 20px;
-  padding: 15px;
-  border-radius: 8px;
-  white-space: pre-line;
-  line-height: 1.5;
+  animation: fireFlicker 1.5s ease-in-out infinite;
 }
 
-.feedback.celebration {
-  display: block;
-  background-color: var(--celebration-bg);
-  border: 3px solid var(--celebration-border);
-  color: var(--celebration-text);
-  font-size: 24px;
-  animation: celebrationPulse 0.5s ease-in-out 3;
-}
-
-.feedback.milestone {
-  display: block;
-  background-color: var(--bg-light-blue);
-  border: 2px solid var(--primary-blue-bright);
-  color: var(--text-dark);
+.streak-counter .streak-number {
   font-size: 20px;
-  animation: milestoneFade 0.3s ease-in-out;
+  font-weight: bold;
+  color: #d97706;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+  min-width: 24px;
+  text-align: center;
 }
 
-@keyframes celebrationPulse {
-  0%,
-  100% {
+.streak-counter .streak-target {
+  font-size: 14px;
+  font-weight: bold;
+  color: #b45309;
+  opacity: 0.7;
+}
+
+.streak-progress-bar-container {
+  width: 100%;
+  height: 4px;
+  background-color: rgba(180, 83, 9, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.streak-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+/* Hide streak counter when streak is 0 and in practice mode */
+.streak-counter.hidden {
+  opacity: 0.3;
+  transform: scale(0.9);
+}
+
+
+/* Fire flicker animation */
+@keyframes fireFlicker {
+  0%, 100% {
+    transform: scale(1) rotate(-5deg);
+  }
+  25% {
+    transform: scale(1.1) rotate(5deg);
+  }
+  50% {
+    transform: scale(0.95) rotate(-3deg);
+  }
+  75% {
+    transform: scale(1.05) rotate(3deg);
+  }
+}
+
+/* Streak increase animation */
+@keyframes streakBump {
+  0% {
     transform: scale(1);
   }
   50% {
-    transform: scale(1.05);
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
   }
 }
 
-@keyframes milestoneFade {
+.streak-counter.bump {
+  animation: streakBump 0.3s ease-out;
+}
+
+.streak-counter.bump .fire-icon {
+  animation: fireGlow 0.3s ease-out;
+}
+
+@keyframes fireGlow {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.2);
+    filter: brightness(1.3);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+/* Mini-game Modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+  animation: modalSlideIn 0.4s ease-out;
+}
+
+.modal-content h2 {
+  color: var(--purple);
+  margin-bottom: 20px;
+  font-size: 28px;
+}
+
+.modal-message {
+  font-size: 18px;
+  color: var(--text-dark);
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+.modal-submessage {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.modal-stats {
+  background-color: var(--bg-body);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.modal-stats p {
+  margin: 8px 0;
+  color: var(--text-secondary);
+}
+
+.modal-close-btn {
+  padding: 12px 30px;
+  font-size: 18px;
+  font-weight: bold;
+  background: linear-gradient(135deg, var(--purple-light), var(--purple));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.modal-close-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.modal-primary-btn {
+  padding: 12px 30px;
+  font-size: 18px;
+  font-weight: bold;
+  background: linear-gradient(135deg, var(--purple-light), var(--purple));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.modal-primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.modal-secondary-btn {
+  padding: 12px 30px;
+  font-size: 16px;
+  background: white;
+  color: var(--text-primary);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.modal-secondary-btn:hover {
+  background: var(--bg-light);
+  border-color: var(--purple);
+}
+
+@keyframes modalFadeIn {
   0% {
     opacity: 0;
-    transform: translateY(-10px);
   }
   100% {
     opacity: 1;
+  }
+}
+
+@keyframes modalSlideIn {
+  0% {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  100% {
     transform: translateY(0);
+    opacity: 1;
   }
 }
