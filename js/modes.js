@@ -3,7 +3,6 @@ import {
   updateCountDisplay,
   resetStreak,
   updateStreakDisplay,
-  scrollToBottom,
 } from "./main.js";
 
 import {
@@ -154,8 +153,8 @@ function addMarblesToBoxes() {
   // Update the count display
   updateCountDisplay();
 
-  // Scroll to bottom to show newly added marbles
-  setTimeout(() => scrollToBottom(), 100);
+  // Ensure there's always an empty row at the bottom
+  ensureEmptyRowBelowLastRow();
 
   // Generate new marbles for the next round
   addMarbles();
@@ -169,7 +168,6 @@ function setupDragHandlers() {
   let isDragging = false;
   let offsetX = 0;
   let offsetY = 0;
-  let temporaryNextRow = null; // Track if we created a temporary next row
   let currentSplitState = null; // Track current split state to avoid unnecessary updates
 
   // Helper function to start dragging
@@ -282,8 +280,8 @@ function setupDragHandlers() {
 
     const isValidDrop = firstEmptyBox && elementUnder === firstEmptyBox.box;
 
-    // Clear split visualization (keep temporary row if valid drop)
-    clearSplitVisualization(!isValidDrop);
+    // Clear split visualization
+    clearSplitVisualization();
 
     if (isValidDrop) {
       // Valid drop - add marbles to boxes
@@ -363,7 +361,7 @@ function setupDragHandlers() {
     currentSplitState = newSplitState;
 
     if (newSplitState === "no-split" || newSplitState === null) {
-      clearSplitVisualization(false); // Don't remove temporary row during drag
+      clearSplitVisualization();
     } else {
       // Parse the split state and show visualization
       const [firstCount, secondCount] = newSplitState.split("-").map(Number);
@@ -421,17 +419,12 @@ function setupDragHandlers() {
 
     // Get or create next row for positioning
     const nextRowIndex = gameState.currentRowIndex + 1;
-    let nextRow;
-    let isNewTemporaryRow = false;
 
-    // Check if next row exists, if not create it temporarily
+    // Get next row (should always exist since we maintain an empty row)
     if (nextRowIndex >= gameState.rows.length) {
-      nextRow = addRow();
-      temporaryNextRow = nextRow;
-      isNewTemporaryRow = true;
-    } else {
-      nextRow = gameState.rows[nextRowIndex];
+      return; // No next row available, can't show split visualization
     }
+    const nextRow = gameState.rows[nextRowIndex];
 
     // Track marble positions for both groups
     let firstGroupFirstMarble = null;
@@ -518,7 +511,7 @@ function setupDragHandlers() {
     }
   }
 
-  function clearSplitVisualization(shouldRemoveTemporaryRow = true) {
+  function clearSplitVisualization() {
     const indicatorsContainer = document.getElementById(
       "split-indicators-container",
     );
@@ -566,16 +559,7 @@ function setupDragHandlers() {
       }
     });
 
-    // Remove temporary next row if it was created (and we should remove it)
-    if (temporaryNextRow && shouldRemoveTemporaryRow) {
-      const gridContainer = document.getElementById("grid-container");
-      gridContainer.removeChild(temporaryNextRow.element);
-      gameState.rows.pop(); // Remove from gameState
-      temporaryNextRow = null;
-    } else if (temporaryNextRow && !shouldRemoveTemporaryRow) {
-      // Keep the row but it's no longer temporary
-      temporaryNextRow = null;
-    }
+    // No need to remove temporary rows - we always maintain an empty row at the bottom
   }
 }
 
@@ -654,14 +638,11 @@ function setupDrawModeHandlers() {
 
     // Add ghost marbles to all boxes in range
     boxesToFill.forEach((b) => addGhostMarble(b));
-
-    // Ensure there's an empty row below if the last row has content
-    ensureEmptyRowBelowLastRow();
   }
 
   // Mouse move handler
   document.addEventListener("mousemove", (e) => {
-    const box = e.target.closest(".box");
+    const box = e.target?.closest ? e.target.closest(".box") : null;
     handleDrawMove(box);
   });
 
@@ -974,9 +955,6 @@ function fillDrawnBoxes(boxes, isCorrect) {
       // Generate new target number
       generateTargetNumber();
 
-      // Scroll to bottom to show newly added marbles
-      setTimeout(() => scrollToBottom(), 100);
-
       // Update streak (only in active game phase)
       if (gameState.gamePhase === "active") {
         gameState.currentStreak++;
@@ -1207,8 +1185,8 @@ function updateModeUI() {
     // Show target display
     if (targetDisplay) targetDisplay.style.display = "flex";
 
-    // Hide challenge button (can't go back to drag mode)
-    if (modeControls) modeControls.style.display = "none";
+    // Hide challenge button with transition (can't go back to drag mode)
+    if (modeControls) modeControls.classList.add("hidden");
   } else {
     // Drag mode (practice phase)
     // Show marble group container
@@ -1221,7 +1199,7 @@ function updateModeUI() {
     if (targetNumber) targetNumber.textContent = "0";
 
     // Show "Start Challenge!" button
-    if (modeControls) modeControls.style.display = "flex";
+    if (modeControls) modeControls.classList.remove("hidden");
   }
 }
 

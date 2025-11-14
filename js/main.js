@@ -107,10 +107,7 @@ function updateStreakDisplay(shouldAnimate = false) {
   }
 }
 
-// Scroll to bottom of page instantly (no animation to avoid interference)
-function scrollToBottom() {
-  window.scrollTo(0, document.body.scrollHeight);
-}
+// Grid no longer scrolls - rows naturally disappear at top when overflow occurs
 
 // Initialize the game with one row
 function initGame() {
@@ -147,9 +144,6 @@ function initGame() {
 
   addRow();
   addMarbles();
-
-  // Scroll to bottom on init
-  setTimeout(() => scrollToBottom(), 100);
 }
 
 // Start the game when page loads
@@ -195,5 +189,4 @@ export {
   updateCountDisplay,
   resetStreak,
   updateStreakDisplay,
-  scrollToBottom,
 };
