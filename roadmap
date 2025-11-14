@@ -7,7 +7,7 @@
 - [ ] Add a main menu screen with "Start game" button and some settings.
 - [ ] Display some instructions popup on starting the game and when switching modes.
 - [x] Don't show thousands position on collapsed hundreds boxes after the first 1000 collapse (e.g. 100 instead of 1100).
-- [ ] Responsive Layout
+- [x] Responsive Layout
 
 ## Gameplay
 - [x] Add score system with streaks which build up until a minigame pops up.
@@ -15,3 +15,7 @@
 - [ ] Increase difficulty in draw mode by increasing number size.
 - [ ] New "target" game mode, where the player has to click on the correct box instead of drawing the correct amount of marbles. This is an advanced mode, since it lacks the visual feedback.
 - [ ] Update instructions.
+
+# Bugfixes
+- [ ] Fix messed up grid after 200 collapse appears
+- [ ] Disable split indicators for marbles placed in first box of a row
