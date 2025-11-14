@@ -7,40 +7,36 @@
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
-    <!-- Streak counter - always visible, aligned with game container -->
-    <div class="streak-counter" id="streak-counter">
-      <div class="streak-content">
-        <span class="fire-icon">🔥</span>
-        <span id="streak-number" class="streak-number">0</span>
-        <span id="streak-target" class="streak-target">/10</span>
-      </div>
-      <div class="streak-progress-bar-container">
-        <div class="streak-progress-bar-fill" id="streak-progress-bar-fill"></div>
-      </div>
-    </div>
-
     <div class="game-container">
-      <h1>Marble Math</h1>
+      <!-- Streak counter - always visible -->
+      <div class="streak-counter" id="streak-counter">
+        <div class="streak-content">
+          <span class="fire-icon">🔥</span>
+          <span id="streak-number" class="streak-number">0</span>
+          <span id="streak-target" class="streak-target">/10</span>
+        </div>
+        <div class="streak-progress-bar-container">
+          <div class="streak-progress-bar-fill" id="streak-progress-bar-fill"></div>
+        </div>
+      </div>
 
       <div class="grid-container" id="grid-container">
         <!-- Rows will be added dynamically here -->
       </div>
 
-      <div class="mode-display-container">
-        <div class="marble-group-container">
-          <div id="marble-group-wrapper" class="marble-group-wrapper">
-            <div id="marble-group" class="marble-group">
-              <!-- Marbles to drag will be added here -->
-            </div>
-            <div id="marble-count-indicator" class="marble-count-indicator"></div>
+      <div class="marble-group-container">
+        <div id="marble-group-wrapper" class="marble-group-wrapper">
+          <div id="marble-group" class="marble-group">
+            <!-- Marbles to drag will be added here -->
           </div>
+          <div id="marble-count-indicator" class="marble-count-indicator"></div>
         </div>
+      </div>
 
-        <div class="target-number-container" style="display: none">
-          <div class="target-number-display" id="target-number-display">
-            <span id="target-number" class="target-number">0</span>
-            <div class="marble marble-icon"></div>
-          </div>
+      <div class="target-number-container" style="display: none">
+        <div class="target-number-display" id="target-number-display">
+          <span id="target-number" class="target-number">0</span>
+          <div class="marble marble-icon"></div>
         </div>
       </div>
 

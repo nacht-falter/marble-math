@@ -54,29 +54,36 @@
   box-sizing: border-box;
 }
 
+/* MOBILE FIRST - Default styles for mobile */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
 body {
   font-family: Arial, sans-serif;
   background-color: var(--bg-body);
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
 }
 
 .game-container {
-  max-width: 800px;
-  margin: 0 auto;
+  flex: 1;
+  max-width: 100%;
+  margin: 0;
+  padding: 5px;
   background-color: var(--bg-container);
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: var(--shadow-sm);
   position: relative;
-}
-
-h1 {
-  text-align: center;
-  color: var(--text-primary);
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .mode-controls {
+  flex-shrink: 0;
+  margin-top: auto;
   display: flex;
   justify-content: center;
   margin-bottom: 15px;
@@ -116,19 +123,13 @@ h1 {
   transform: translateY(0);
 }
 
-.mode-display-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100px;
-}
-
 .target-number-container {
+  flex-shrink: 0;
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
-  flex: 1;
+  padding: 5px 0;
 }
 
 .target-number-display {
@@ -151,10 +152,15 @@ h1 {
 }
 
 .grid-container {
+  flex-shrink: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 50vh;
+  margin-bottom: 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 20px;
+  gap: 5px;
+  padding: 5px;
   background-color: var(--bg-grid);
   border-radius: 8px;
   user-select: none;
@@ -165,19 +171,18 @@ h1 {
 
 .row-wrapper {
   display: grid;
-  grid-template-columns: 40px 1fr 40px;
+  grid-template-columns: 1fr;
   align-items: center;
   gap: 15px;
 }
 
-.row-wrapper > .row-label {
-  grid-column: 1;
+.row-label {
+  display: none;
 }
 
 .row-wrapper > .row,
 .row-wrapper > .hundred-box,
 .row-wrapper > .thousand-box {
-  grid-column: 2;
   justify-self: center;
 }
 
@@ -230,8 +235,8 @@ h1 {
 }
 
 .hundred-box {
-  width: 545px; /* Same as regular row: 10 boxes * 50px + 9 gaps * 5px */
-  height: 50px; /* Same as regular box height */
+  width: calc(90vw + 18px); /* 10 boxes * 9vw + 9 gaps * 2px */
+  height: 9vw;
   border: 2px solid var(--primary-blue-dark);
   border-radius: 5px;
   background: linear-gradient(
@@ -242,7 +247,7 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 5vw;
   font-weight: bold;
   color: var(--text-light);
   text-shadow: var(--text-shadow-box);
@@ -250,8 +255,8 @@ h1 {
 }
 
 .thousand-box {
-  width: 545px; /* Same as regular row: 10 boxes * 50px + 9 gaps * 5px */
-  height: 50px; /* Same as regular box height */
+  width: calc(90vw + 18px); /* 10 boxes * 9vw + 9 gaps * 2px */
+  height: 9vw;
   border: 3px solid var(--purple);
   border-radius: 5px;
   background: linear-gradient(
@@ -262,7 +267,7 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 5vw;
   font-weight: bold;
   color: var(--text-light);
   text-shadow: var(--text-shadow-box);
@@ -278,13 +283,13 @@ h1 {
 
 .row {
   display: flex;
-  gap: 5px;
+  gap: 2px;
   justify-content: center;
 }
 
 .box {
-  width: 50px;
-  height: 50px;
+  width: 9vw;
+  height: 9vw;
   border: 2px solid var(--text-primary);
   border-radius: 5px;
   background-color: var(--bg-container);
@@ -325,8 +330,8 @@ h1 {
 }
 
 .marble {
-  width: 40px;
-  height: 40px;
+  width: 7vw;
+  height: 7vw;
   background: radial-gradient(
     circle at 30% 30%,
     var(--primary-blue-light),
@@ -339,7 +344,7 @@ h1 {
   justify-content: center;
   color: var(--text-light);
   font-weight: bold;
-  font-size: 14px;
+  font-size: 2.5vw;
   text-shadow: var(--text-shadow-marble);
 }
 
@@ -392,10 +397,13 @@ h1 {
 }
 
 .marble-group-container {
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
+  padding: 5px 0;
+  min-height: 80px;
 }
 
 .marble-group-wrapper {
@@ -405,19 +413,23 @@ h1 {
   cursor: move;
 }
 
-.marble-count-indicator {
-  font-size: 24px;
+.marble-count-indicator,
+.split-indicator {
+  font-size: 5vw;
   font-weight: bold;
   color: var(--primary-blue-light);
-  margin-top: 10px;
-  min-height: 30px;
   background-color: var(--marble-count-bg);
   padding: 5px 15px;
   border-radius: 5px;
   border: 2px dashed var(--primary-blue-light);
-  width: 100%;
-  text-align: center;
   box-sizing: border-box;
+  text-align: center;
+}
+
+.marble-count-indicator {
+  margin-top: 10px;
+  min-height: 30px;
+  width: 100%;
 }
 
 .split-indicators-container {
@@ -425,14 +437,6 @@ h1 {
   margin-top: 10px;
   align-items: center;
   width: 100%;
-}
-
-.split-indicator {
-  background-color: var(--marble-count-bg);
-  padding: 5px 15px;
-  border-radius: 5px;
-  border: 2px dashed var(--primary-blue-light);
-  box-sizing: border-box;
 }
 
 .split-indicator-second {
@@ -444,14 +448,11 @@ h1 {
 
 .marble-group {
   display: flex;
-  gap: 15px;
-  flex-wrap: wrap;
-  padding: 10px;
+  gap: calc(2vw + 2px);
+  padding: 5px;
 }
 
 .marble-group .marble {
-  width: 40px;
-  height: 40px;
   cursor: move;
   background: radial-gradient(
     circle at 30% 30%,
@@ -467,6 +468,7 @@ h1 {
 }
 
 .controls {
+  flex-shrink: 0;
   display: flex;
   gap: 10px;
   justify-content: center;
@@ -512,24 +514,174 @@ button:hover {
   background-color: var(--primary-blue-hover);
 }
 
-/* Streak Counter - Sticky, Aligned with Game Container Right Edge */
+/* ===================================
+   RESPONSIVE DESIGN - DESKTOP
+   =================================== */
+
+/* Tablets - intermediate sizing */
+@media (min-width: 601px) and (max-width: 850px) {
+  body {
+    padding: 10px;
+    display: block;
+  }
+
+  .game-container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: var(--shadow-sm);
+    flex: none;
+    display: block;
+  }
+
+  .grid-container {
+    flex: none;
+    overflow-y: visible;
+    overflow-x: visible;
+    min-height: auto;
+  }
+
+  .row-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .row-label {
+    display: none;
+  }
+
+  .streak-counter {
+    align-self: auto;
+    margin-left: auto;
+    margin-right: 0;
+    margin-bottom: 15px;
+    padding: 8px 14px;
+    min-width: 100px;
+  }
+
+  .marble-group {
+    gap: calc(2vw + 2px);
+  }
+}
+
+/* Desktop and larger screens */
+@media (min-width: 851px) {
+  html, body {
+    height: auto;
+    overflow: visible;
+  }
+
+  body {
+    padding: 20px;
+    display: block;
+  }
+
+  .game-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: var(--shadow-sm);
+    flex: none;
+    display: block;
+  }
+
+  .grid-container {
+    flex: none;
+    overflow-y: visible;
+    min-height: auto;
+  }
+
+  .mode-controls {
+    margin-top: 0;
+    flex-shrink: 1;
+  }
+
+  .controls {
+    flex-shrink: 1;
+  }
+
+  .streak-counter {
+    align-self: auto;
+    margin-left: auto;
+    margin-right: 0;
+    margin-bottom: 20px;
+    padding: 8px 14px;
+    min-width: 100px;
+  }
+
+  .row-wrapper {
+    grid-template-columns: 40px 1fr 40px;
+  }
+
+  .row-label {
+    display: block;
+  }
+
+  .row-wrapper > .row-label {
+    grid-column: 1;
+  }
+
+  .row-wrapper > .row,
+  .row-wrapper > .hundred-box,
+  .row-wrapper > .thousand-box {
+    grid-column: 2;
+  }
+
+  .row {
+    gap: 5px;
+  }
+
+  .box {
+    width: 50px;
+    height: 50px;
+  }
+
+  .marble {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+  }
+
+  .grid-container {
+    gap: 10px;
+    padding: 20px;
+    overflow-x: visible;
+  }
+
+  .marble-group {
+    gap: 15px;
+  }
+
+  .marble-count-indicator,
+  .split-indicator {
+    font-size: 24px;
+  }
+
+  .hundred-box,
+  .thousand-box {
+    width: 545px; /* 10 boxes * 50px + 9 gaps * 5px */
+    height: 50px;
+    font-size: 24px;
+  }
+}
+
+/* Streak Counter - Mobile First */
 .streak-counter {
-  position: sticky;
-  top: 105px;
-  right: max(calc((100vw - 800px) / 2 + 30px), 30px);
+  flex-shrink: 0;
+  align-self: flex-end;
   display: flex;
   flex-direction: column;
   gap: 4px;
   background: linear-gradient(135deg, #fff9e6, #ffe680);
-  padding: 8px 14px;
+  padding: 6px 10px;
   border-radius: 20px;
   border: 2px solid #ffb700;
   box-shadow: 0 3px 8px rgba(255, 183, 0, 0.3);
   transition: all 0.3s ease;
-  z-index: 1000;
   width: fit-content;
-  min-width: 100px;
-  margin-left: auto;
+  min-width: 80px;
+  margin-bottom: 10px;
 }
 
 .streak-content {

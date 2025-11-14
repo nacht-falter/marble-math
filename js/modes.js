@@ -172,55 +172,89 @@ function setupDragHandlers() {
   let temporaryNextRow = null; // Track if we created a temporary next row
   let currentSplitState = null; // Track current split state to avoid unnecessary updates
 
-  // Use capture phase to ensure we catch all mousedown events
+  // Helper function to start dragging
+  function startDragging(clientX, clientY) {
+    isDragging = true;
+    const rect = marbleGroupWrapper.getBoundingClientRect();
+    offsetX = clientX - rect.left;
+    offsetY = clientY - rect.top;
+
+    marbleGroupWrapper.classList.add("dragging");
+
+    // Preserve parent container height to prevent layout shift
+    if (marbleGroupContainer) {
+      const containerHeight = marbleGroupContainer.offsetHeight;
+      marbleGroupContainer.style.height = containerHeight + "px";
+    }
+
+    marbleGroupWrapper.style.position = "fixed";
+    marbleGroupWrapper.style.zIndex = "1000";
+    marbleGroupWrapper.style.pointerEvents = "none"; // Allow detecting elements underneath
+
+    // Position the marble group wrapper at cursor
+    marbleGroupWrapper.style.left = clientX - offsetX + "px";
+    marbleGroupWrapper.style.top = clientY - offsetY + "px";
+
+    // Highlight the first empty box
+    const firstEmptyBox = getFirstEmptyBox();
+    if (firstEmptyBox) {
+      firstEmptyBox.box.classList.add("drop-target");
+    }
+  }
+
+  // Mouse down handler
   marbleGroupWrapper.addEventListener(
     "mousedown",
     (e) => {
-      isDragging = true;
-      const rect = marbleGroupWrapper.getBoundingClientRect();
-      offsetX = e.clientX - rect.left;
-      offsetY = e.clientY - rect.top;
-
-      marbleGroupWrapper.classList.add("dragging");
-
-      // Preserve parent container height to prevent layout shift
-      if (marbleGroupContainer) {
-        const containerHeight = marbleGroupContainer.offsetHeight;
-        marbleGroupContainer.style.height = containerHeight + "px";
-      }
-
-      marbleGroupWrapper.style.position = "fixed";
-      marbleGroupWrapper.style.zIndex = "1000";
-      marbleGroupWrapper.style.pointerEvents = "none"; // Allow detecting elements underneath
-
-      // Position the marble group wrapper at cursor
-      marbleGroupWrapper.style.left = e.clientX - offsetX + "px";
-      marbleGroupWrapper.style.top = e.clientY - offsetY + "px";
-
-      // Highlight the first empty box
-      const firstEmptyBox = getFirstEmptyBox();
-      if (firstEmptyBox) {
-        firstEmptyBox.box.classList.add("drop-target");
-      }
-
+      startDragging(e.clientX, e.clientY);
       e.preventDefault();
       e.stopPropagation();
     },
     true,
   );
 
-  document.addEventListener("mousemove", (e) => {
+  // Touch start handler
+  marbleGroupWrapper.addEventListener(
+    "touchstart",
+    (e) => {
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        startDragging(touch.clientX, touch.clientY);
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    },
+    { passive: false, capture: true },
+  );
+
+  // Helper function for dragging movement
+  function handleDragMove(clientX, clientY) {
     if (!isDragging) return;
 
     // Move the marble group wrapper with the cursor
-    marbleGroupWrapper.style.left = e.clientX - offsetX + "px";
-    marbleGroupWrapper.style.top = e.clientY - offsetY + "px";
+    marbleGroupWrapper.style.left = clientX - offsetX + "px";
+    marbleGroupWrapper.style.top = clientY - offsetY + "px";
 
     // Check if we're over the drop target and need to show split
     updateSplitVisualization();
+  }
+
+  // Mouse move handler
+  document.addEventListener("mousemove", (e) => {
+    handleDragMove(e.clientX, e.clientY);
   });
 
-  document.addEventListener("mouseup", (e) => {
+  // Touch move handler
+  document.addEventListener("touchmove", (e) => {
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      handleDragMove(touch.clientX, touch.clientY);
+      e.preventDefault(); // Prevent scrolling while dragging
+    }
+  }, { passive: false });
+
+  // Helper function for ending drag
+  function endDragging() {
     if (!isDragging) return;
 
     // Get the first marble in the group
@@ -270,6 +304,16 @@ function setupDragHandlers() {
     if (marbleGroupContainer) {
       marbleGroupContainer.style.height = "";
     }
+  }
+
+  // Mouse up handler
+  document.addEventListener("mouseup", (e) => {
+    endDragging();
+  });
+
+  // Touch end handler
+  document.addEventListener("touchend", (e) => {
+    endDragging();
   });
 
   function updateSplitVisualization() {
@@ -435,12 +479,16 @@ function setupDragHandlers() {
       }
     });
 
-    // Get current row boxes for width calculation
+    // Get box dimensions for width calculation (to match marble-count-indicator)
     const currentRow = gameState.rows[gameState.currentRowIndex];
     const firstBox = currentRow.boxes[0];
     const firstBoxRect = firstBox.getBoundingClientRect();
     const boxWidth = firstBoxRect.width;
-    const boxGap = 5; // From CSS .row gap
+
+    // Get the computed gap from row
+    const rowElement = currentRow.element.querySelector('.row');
+    const rowStyles = window.getComputedStyle(rowElement);
+    const boxGap = parseFloat(rowStyles.gap);
 
     // Position the first indicator below the first group
     if (firstGroupFirstMarble && firstGroupLastMarble) {
@@ -552,10 +600,9 @@ function setupDrawModeHandlers() {
   let isDrawing = false;
   let drawStartBox = null;
 
-  gridContainer.addEventListener("mousedown", (e) => {
+  // Helper function to start drawing
+  function startDrawing(box) {
     if (gameState.gameMode !== "draw") return;
-
-    const box = e.target.closest(".box");
     if (!box) return;
 
     // Check if this is an empty box
@@ -574,14 +621,29 @@ function setupDrawModeHandlers() {
 
     // Add preview to start box
     addGhostMarble(box);
+  }
 
+  // Mouse down handler
+  gridContainer.addEventListener("mousedown", (e) => {
+    const box = e.target.closest(".box");
+    startDrawing(box);
     e.preventDefault();
   });
 
-  document.addEventListener("mousemove", (e) => {
-    if (!isDrawing || gameState.gameMode !== "draw") return;
+  // Touch start handler
+  gridContainer.addEventListener("touchstart", (e) => {
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      const element = document.elementFromPoint(touch.clientX, touch.clientY);
+      const box = element?.closest(".box");
+      startDrawing(box);
+      e.preventDefault();
+    }
+  }, { passive: false });
 
-    const box = e.target.closest(".box");
+  // Helper function for draw move
+  function handleDrawMove(box) {
+    if (!isDrawing || gameState.gameMode !== "draw") return;
     if (!box) return;
 
     // Get all empty boxes from start to current hover
@@ -595,9 +657,27 @@ function setupDrawModeHandlers() {
 
     // Ensure there's an empty row below if the last row has content
     ensureEmptyRowBelowLastRow();
+  }
+
+  // Mouse move handler
+  document.addEventListener("mousemove", (e) => {
+    const box = e.target.closest(".box");
+    handleDrawMove(box);
   });
 
-  document.addEventListener("mouseup", () => {
+  // Touch move handler
+  document.addEventListener("touchmove", (e) => {
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      const element = document.elementFromPoint(touch.clientX, touch.clientY);
+      const box = element?.closest(".box");
+      handleDrawMove(box);
+      e.preventDefault(); // Prevent scrolling while drawing
+    }
+  }, { passive: false });
+
+  // Helper function to end drawing
+  function endDrawing() {
     if (!isDrawing || gameState.gameMode !== "draw") return;
 
     isDrawing = false;
@@ -632,6 +712,16 @@ function setupDrawModeHandlers() {
     }
 
     drawStartBox = null;
+  }
+
+  // Mouse up handler
+  document.addEventListener("mouseup", () => {
+    endDrawing();
+  });
+
+  // Touch end handler
+  document.addEventListener("touchend", () => {
+    endDrawing();
   });
 }
 
