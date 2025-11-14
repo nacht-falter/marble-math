@@ -59,11 +59,57 @@ function addRow() {
 
   const rowData = createRow(startValue);
 
+  // FLIP animation: First - record positions of existing rows before change
+  const existingRowElements = Array.from(gridContainer.querySelectorAll('.row-wrapper'));
+  const firstPositions = existingRowElements.map(el => el.getBoundingClientRect().top);
+
+  // Last - make the DOM change
   gameState.rows.push(rowData);
   gridContainer.appendChild(rowData.element);
 
-  // Add fade-in animation for new rows
-  rowData.element.classList.add("fading-in");
+  // Start with new row invisible (using !important to override animation)
+  rowData.element.style.setProperty('opacity', '0', 'important');
+
+  // Invert - calculate how much each existing row moved and apply reverse transform
+  if (firstPositions.length > 0) {
+    requestAnimationFrame(() => {
+      existingRowElements.forEach((el, i) => {
+        const lastPosition = el.getBoundingClientRect().top;
+        const delta = firstPositions[i] - lastPosition;
+        if (delta !== 0) {
+          // Apply the inverted position instantly
+          el.style.transform = `translateY(${delta}px)`;
+          el.style.transition = 'none';
+        }
+      });
+
+      // Play - animate to final position
+      requestAnimationFrame(() => {
+        existingRowElements.forEach(el => {
+          el.style.transition = 'transform 0.3s ease-out';
+          el.style.transform = 'translateY(0)';
+        });
+
+        // Start fading in new row after delay (100ms to let slide animation be visible first)
+        setTimeout(() => {
+          rowData.element.style.removeProperty('opacity');
+          rowData.element.classList.add("fading-in");
+        }, 200);
+
+        // Clean up after animation
+        setTimeout(() => {
+          existingRowElements.forEach(el => {
+            el.style.transition = '';
+            el.style.transform = '';
+          });
+        }, 300);
+      });
+    });
+  } else {
+    // First row, just fade it in
+    rowData.element.style.removeProperty('opacity');
+    rowData.element.classList.add("fading-in");
+  }
 
   return rowData;
 }

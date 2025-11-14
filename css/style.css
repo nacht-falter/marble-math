@@ -170,7 +170,6 @@ body {
 .grid-container {
   flex: 1;
   overflow: hidden;
-  margin-bottom: 20px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -203,7 +202,7 @@ body {
   grid-template-columns: 1fr;
   align-items: center;
   gap: 15px;
-  transition: transform 0.5s ease-out;
+  position: relative;
 }
 
 .row-label {
@@ -398,6 +397,20 @@ body {
   }
 }
 
+/* Slide up animation for existing rows when new row appears */
+@keyframes slideUp {
+  from {
+    transform: translateY(var(--slide-distance-positive, 60px));
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.slide-up {
+  animation: slideUp 0.6s ease-out;
+}
+
 /* Fade in animation for new rows */
 @keyframes fadeIn {
   0% {
@@ -409,7 +422,7 @@ body {
 }
 
 .fading-in {
-  animation: fadeIn 0.5s ease-in forwards;
+  animation: fadeIn 0.6s ease-out forwards;
 }
 
 /* Fade out animation for removed rows */
@@ -597,13 +610,13 @@ button:hover {
 /* Desktop and larger screens */
 @media (min-width: 851px) {
   html, body {
-    height: auto;
-    overflow: visible;
+    height: 100vh;
+    overflow: hidden;
   }
 
   body {
     padding: 20px;
-    display: block;
+    display: flex;
   }
 
   .game-container {
@@ -612,14 +625,19 @@ button:hover {
     padding: 30px;
     border-radius: 10px;
     box-shadow: var(--shadow-sm);
-    flex: none;
-    display: block;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
   }
 
   .grid-container {
     flex: 1;
     overflow: hidden;
     min-height: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
   }
 
   .mode-controls {
