@@ -397,6 +397,45 @@ body {
   }
 }
 
+/* Highlight first marble with pulsing glow and white hand icon */
+.first-marble {
+  position: relative;
+  animation: firstMarbleGlow 2s ease-in-out infinite;
+}
+
+.first-marble::before {
+  content: '🖐️';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5em;
+  filter: grayscale(100%) brightness(2);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  z-index: 1;
+  animation: handBounce 2s ease-in-out infinite;
+}
+
+@keyframes handBounce {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+}
+
+@keyframes firstMarbleGlow {
+  0%,
+  100% {
+    box-shadow: var(--shadow-marble), 0 0 0 0 rgba(74, 144, 226, 0.7);
+  }
+  50% {
+    box-shadow: var(--shadow-marble), 0 0 8px 4px rgba(74, 144, 226, 0.5);
+  }
+}
+
 /* Slide up animation for existing rows when new row appears */
 @keyframes slideUp {
   from {
@@ -453,7 +492,11 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  cursor: move;
+  cursor: grab;
+}
+
+.marble-group-wrapper:active {
+  cursor: grabbing;
 }
 
 .marble-count-indicator,
@@ -496,7 +539,7 @@ body {
 }
 
 .marble-group .marble {
-  cursor: move;
+  cursor: grab;
   background: radial-gradient(
     circle at 30% 30%,
     var(--primary-blue-light),
@@ -504,10 +547,19 @@ body {
   );
 }
 
+.marble-group .marble:active {
+  cursor: grabbing;
+}
+
+.marble-group-wrapper.dragging {
+  cursor: grabbing !important;
+}
+
 .marble-group-wrapper.dragging .marble {
   pointer-events: none;
   opacity: 0.4;
   animation: ghostPulse 1s ease-in-out infinite;
+  cursor: grabbing !important;
 }
 
 .controls {
@@ -563,9 +615,14 @@ button:hover {
 
 /* Tablets - intermediate sizing */
 @media (min-width: 601px) and (max-width: 850px) {
+  html, body {
+    height: 100vh;
+    overflow: hidden;
+  }
+
   body {
     padding: 10px;
-    display: block;
+    display: flex;
   }
 
   .game-container {
@@ -574,15 +631,19 @@ button:hover {
     padding: 15px;
     border-radius: 10px;
     box-shadow: var(--shadow-sm);
-    flex: none;
-    display: block;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
   }
 
   .grid-container {
-    flex: none;
-    overflow-y: visible;
-    overflow-x: visible;
+    flex: 1;
+    overflow: hidden;
     min-height: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
   }
 
   .row-wrapper {

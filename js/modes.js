@@ -25,6 +25,10 @@ function addMarbles() {
   for (let i = 0; i < marbleCount; i++) {
     const marble = document.createElement("div");
     marble.className = "marble";
+    // Highlight the first marble to indicate it should be dragged
+    if (i === 0) {
+      marble.classList.add("first-marble");
+    }
     marbleGroup.appendChild(marble);
   }
 }
@@ -189,6 +193,9 @@ function setupDragHandlers() {
     marbleGroupWrapper.style.zIndex = "1000";
     marbleGroupWrapper.style.pointerEvents = "none"; // Allow detecting elements underneath
 
+    // Set grabbing cursor on body while dragging
+    document.body.style.cursor = "grabbing";
+
     // Position the marble group wrapper at cursor
     marbleGroupWrapper.style.left = clientX - offsetX + "px";
     marbleGroupWrapper.style.top = clientY - offsetY + "px";
@@ -297,6 +304,9 @@ function setupDragHandlers() {
     marbleGroupWrapper.style.pointerEvents = "";
     marbleGroupWrapper.style.left = "";
     marbleGroupWrapper.style.top = "";
+
+    // Reset cursor on body
+    document.body.style.cursor = "";
 
     // Reset parent container height
     if (marbleGroupContainer) {
