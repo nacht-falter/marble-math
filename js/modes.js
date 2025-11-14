@@ -353,19 +353,18 @@ function setupDragHandlers() {
       newSplitState = "no-split";
     }
 
-    // Only update if state changed
-    if (newSplitState === currentSplitState) {
-      return;
-    }
-
-    currentSplitState = newSplitState;
-
+    // Update visualization based on state
     if (newSplitState === "no-split" || newSplitState === null) {
-      clearSplitVisualization();
+      // Only clear if we were previously showing split visualization
+      if (currentSplitState !== "no-split" && currentSplitState !== null) {
+        clearSplitVisualization();
+        currentSplitState = newSplitState;
+      }
     } else {
-      // Parse the split state and show visualization
+      // Always update split visualization to track moving marbles
       const [firstCount, secondCount] = newSplitState.split("-").map(Number);
       showSplitVisualization(firstCount, secondCount);
+      currentSplitState = newSplitState;
     }
   }
 
@@ -484,27 +483,37 @@ function setupDragHandlers() {
     const boxGap = parseFloat(rowStyles.gap);
 
     // Position the first indicator below the first group
+    // Recalculate positions on every call to track moving marbles
     if (firstGroupFirstMarble && firstGroupLastMarble) {
+      // Get current positions of the marbles (they may have moved)
+      const currentFirstMarble = marbles[0].getBoundingClientRect();
+      const currentLastMarbleOfFirstGroup = marbles[firstCount - 1].getBoundingClientRect();
+
       // Calculate fixed width based on number of marbles and box dimensions
       const indicatorWidth = firstCount * boxWidth + (firstCount - 1) * boxGap;
 
       firstIndicator.style.position = "fixed";
-      firstIndicator.style.left = firstGroupFirstMarble.left + "px";
-      firstIndicator.style.top = firstGroupLastMarble.bottom + 10 + "px";
+      firstIndicator.style.left = currentFirstMarble.left + "px";
+      firstIndicator.style.top = currentLastMarbleOfFirstGroup.bottom + 10 + "px";
       firstIndicator.style.width = indicatorWidth + "px";
       firstIndicator.style.zIndex = "1000";
       firstIndicator.style.textAlign = "center";
     }
 
     // Position the second indicator below the second group in the next row
+    // Recalculate positions on every call to track repositioned marbles
     if (secondGroupFirstMarble && secondGroupLastMarble) {
+      // Get current positions of the second group marbles
+      const currentFirstMarbleOfSecondGroup = marbles[firstCount].getBoundingClientRect();
+      const currentLastMarble = marbles[marbles.length - 1].getBoundingClientRect();
+
       // Calculate fixed width based on number of marbles and box dimensions
       const indicatorWidth =
         secondCount * boxWidth + (secondCount - 1) * boxGap;
 
       secondIndicator.style.position = "fixed";
-      secondIndicator.style.left = secondGroupFirstMarble.left + "px";
-      secondIndicator.style.top = secondGroupLastMarble.bottom + 10 + "px";
+      secondIndicator.style.left = currentFirstMarbleOfSecondGroup.left + "px";
+      secondIndicator.style.top = currentLastMarble.bottom + 10 + "px";
       secondIndicator.style.width = indicatorWidth + "px";
       secondIndicator.style.zIndex = "1000";
       secondIndicator.style.textAlign = "center";

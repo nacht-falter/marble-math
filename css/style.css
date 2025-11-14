@@ -457,14 +457,13 @@ body {
 }
 
 .marble-count-indicator {
-  margin-top: 10px;
+  margin-top: 0;
   min-height: 30px;
   width: 100%;
 }
 
 .split-indicators-container {
   display: none;
-  margin-top: 10px;
   align-items: center;
   width: 100%;
 }
@@ -480,6 +479,7 @@ body {
   display: flex;
   gap: calc(2vw + 2px);
   padding: 5px;
+  margin-bottom: 5px;
 }
 
 .marble-group .marble {
