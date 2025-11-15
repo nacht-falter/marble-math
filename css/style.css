@@ -690,6 +690,22 @@ button:hover {
   .marble-group {
     gap: calc(2vw + 2px);
   }
+
+  /* Fix horizontal overflow - reduce box size */
+  .box {
+    width: 7.5vw;
+    height: 7.5vw;
+  }
+
+  .marble {
+    width: calc(7.5vw - 10px);
+    height: calc(7.5vw - 10px);
+    font-size: 12px;
+  }
+
+  .row {
+    gap: 1px;
+  }
 }
 
 /* Desktop and larger screens */

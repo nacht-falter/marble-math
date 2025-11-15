@@ -28,4 +28,4 @@
 - [x] Can't add 11, 12 or higher numbers of marbles if the last row is an empty row because there is not enough room in the row.
 - [x] Hide target display on mini game trigger before the next target is shown.
 - [x] Fix bug where collapseToHundred was removing all regular rows instead of just the 10 rows being collapsed.
-- [ ] Layout bug for screen size around 486 to approx. 781 px: Grid rows not fully visible.
+- [x] Layout bug for screen size around 486 to approx. 781 px: Grid rows not fully visible (reduced box size from 9vw to 7.5vw for tablet screens).
