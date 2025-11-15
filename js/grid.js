@@ -222,8 +222,9 @@ function collapseToThousand(thousandValue) {
 function collapseToHundred(hundredValue) {
   const gridContainer = document.getElementById("grid-container");
 
-  // Collect ALL regular (non-collapsed) rows to remove
-  const rowsToRemove = gameState.rows.filter((row) => !row.isCollapsed);
+  // Only remove the first 10 regular rows (the 100 marbles being collapsed)
+  const regularRows = gameState.rows.filter((row) => !row.isCollapsed);
+  const rowsToRemove = regularRows.slice(0, 10);
 
   // Remove rows from gameState immediately (for game logic)
   // Note: currentRowIndex will be reset by the calling code in modes.js

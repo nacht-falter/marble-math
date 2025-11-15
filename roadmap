@@ -27,5 +27,5 @@
 - [x] Disable split indicators for marbles placed in first box of a row
 - [x] Can't add 11, 12 or higher numbers of marbles if the last row is an empty row because there is not enough room in the row.
 - [x] Hide target display on mini game trigger before the next target is shown.
-- [ ] Fix bug where collapseToHundred was removing all regular rows instead of just the 10 rows being collapsed.
+- [x] Fix bug where collapseToHundred was removing all regular rows instead of just the 10 rows being collapsed.
 - [ ] Layout bug for screen size around 486 to approx. 781 px: Grid rows not fully visible.
