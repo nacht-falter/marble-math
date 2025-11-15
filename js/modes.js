@@ -342,14 +342,15 @@ function setupDragHandlers() {
 
     // Only show split if we're over the correct box
     if (firstEmptyBox && elementUnder === firstEmptyBox.box) {
-      // Calculate how many marbles fit in current row
-      const currentRow = gameState.rows[gameState.currentRowIndex];
-      const emptyBoxesInRow = currentRow.boxes.filter(
+      // Calculate how many marbles fit in the row containing the first empty box
+      const targetRow = gameState.rows[firstEmptyBox.rowIndex];
+      const emptyBoxesInRow = targetRow.boxes.filter(
         (box) => !box.hasChildNodes(),
       ).length;
       const totalMarbles = marbleGroup.querySelectorAll(".marble").length;
 
-      if (totalMarbles > emptyBoxesInRow) {
+      // Only show split if marbles need to be split AND at least 1 marble goes in the first row
+      if (totalMarbles > emptyBoxesInRow && emptyBoxesInRow > 0) {
         // Split needed
         const marblesInFirstRow = emptyBoxesInRow;
         const marblesInSecondRow = totalMarbles - emptyBoxesInRow;
