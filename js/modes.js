@@ -12,20 +12,18 @@ import {
   getFirstEmptyBox,
 } from "./grid.js";
 
-function addMarbles() {
+function createMarblesInGroup() {
   const marbleGroup = document.getElementById("marble-group");
   const marbleCountIndicator = document.getElementById(
     "marble-count-indicator",
   );
   const marbleCount = Math.floor(Math.random() * 10) + 1;
 
-  // Update the count indicator
   marbleCountIndicator.textContent = marbleCount;
 
   for (let i = 0; i < marbleCount; i++) {
     const marble = document.createElement("div");
     marble.className = "marble";
-    // Highlight the first marble to indicate it should be dragged
     if (i === 0) {
       marble.classList.add("first-marble");
     }
@@ -33,60 +31,61 @@ function addMarbles() {
   }
 }
 
-// Add marbles from marble-group to boxes
-function addMarblesToBoxes() {
-  const marbleGroup = document.getElementById("marble-group");
-  const marbles = Array.from(marbleGroup.querySelectorAll(".marble"));
+// Add marbles to grid - either from marble-group or directly (mini-game)
+function placeMarbleGroupInGrid(directCount = null) {
+  let marbleCount;
 
-  if (marbles.length === 0) {
-    return;
+  if (directCount !== null) {
+    // Direct placement (mini-game): create marbles directly in grid
+    marbleCount = directCount;
+  } else {
+    // Normal placement: get marbles from marble group
+    const marbleGroup = document.getElementById("marble-group");
+    const marbles = Array.from(marbleGroup.querySelectorAll(".marble"));
+    marbleCount = marbles.length;
+
+    if (marbleCount === 0) {
+      return;
+    }
   }
 
   let currentRow = gameState.rows[gameState.currentRowIndex];
 
-  for (const marble of marbles) {
-    // If currentRow is null (e.g., after collapse), get the row at currentRowIndex
+  for (let i = 0; i < marbleCount; i++) {
     if (!currentRow) {
       if (gameState.currentRowIndex >= gameState.rows.length) {
-        addRow();
+        addRow(false);
       }
       currentRow = gameState.rows[gameState.currentRowIndex];
     }
 
-    // Find first empty box in current row
     let emptyBoxIndex = currentRow.boxes.findIndex(
       (box) => !box.hasChildNodes(),
     );
 
     if (emptyBoxIndex === -1) {
-      // Current row is full, move to next row
       gameState.currentRowIndex++;
 
       if (gameState.currentRowIndex >= gameState.rows.length) {
-        addRow();
+        addRow(false);
       }
 
       currentRow = gameState.rows[gameState.currentRowIndex];
       emptyBoxIndex = 0;
     }
 
-    // Move marble from group to box
     const newMarble = document.createElement("div");
     newMarble.className = "marble";
 
-    // Add the number to the marble
     gameState.totalMarbles++;
     newMarble.textContent = gameState.totalMarbles;
 
-    // Apply row color to marble
     newMarble.style.background = `radial-gradient(circle at 30% 30%, ${currentRow.color.marbleLight}, ${currentRow.color.marbleDark})`;
 
     currentRow.boxes[emptyBoxIndex].appendChild(newMarble);
     currentRow.marbleCount++;
 
-    // Check if we just reached a multiple of 1000 or 100
     if (gameState.totalMarbles % 1000 === 0) {
-      // Remove any regular rows that might exist
       const gridContainer = document.getElementById("grid-container");
       const regularRowsToRemove = gameState.rows.filter(
         (row) => !row.isCollapsed,
@@ -151,17 +150,20 @@ function addMarblesToBoxes() {
     }
   }
 
-  // Clear the marble group
-  marbleGroup.innerHTML = "";
+  // Clear the marble group (only if we were using it)
+  if (directCount === null) {
+    const marbleGroup = document.getElementById("marble-group");
+    marbleGroup.innerHTML = "";
+
+    // Generate new marbles for the next round
+    createMarblesInGroup();
+  }
 
   // Update the count display
   updateCountDisplay();
 
   // Ensure there's always an empty row at the bottom
   ensureEmptyRowBelowLastRow();
-
-  // Generate new marbles for the next round
-  addMarbles();
 }
 
 // Setup custom drag handlers for marble group using mouse events
@@ -203,7 +205,7 @@ function setupDragHandlers() {
     // Highlight the first empty box
     const firstEmptyBox = getFirstEmptyBox();
     if (firstEmptyBox) {
-      firstEmptyBox.box.classList.add("drop-target");
+      firstEmptyBox.box.classList.add("target-box");
     }
   }
 
@@ -281,8 +283,8 @@ function setupDragHandlers() {
     const firstEmptyBox = getFirstEmptyBox();
 
     // Remove highlight from all boxes
-    document.querySelectorAll(".box.drop-target").forEach((box) => {
-      box.classList.remove("drop-target");
+    document.querySelectorAll(".box.target-box").forEach((box) => {
+      box.classList.remove("target-box");
     });
 
     const isValidDrop = firstEmptyBox && elementUnder === firstEmptyBox.box;
@@ -292,7 +294,7 @@ function setupDragHandlers() {
 
     if (isValidDrop) {
       // Valid drop - add marbles to boxes
-      addMarblesToBoxes();
+      placeMarbleGroupInGrid();
     }
 
     // Reset marble group wrapper position
@@ -732,8 +734,6 @@ function addGhostMarble(box) {
 
   const ghost = document.createElement("div");
   ghost.className = "marble ghost-marble";
-  ghost.textContent = "?";
-
   box.appendChild(ghost);
 }
 
@@ -859,45 +859,422 @@ function showMilestonePrompt(marbleCount) {
   }
 }
 
-// Show mini-game placeholder when streak requirement is reached
-function showMiniGamePlaceholder() {
+function generateMathProblem(level) {
+  let num1, num2, answer, text, currentCap;
+
+  // Define allowed operations based on level
+  const operations = [];
+  if (level >= 1) operations.push(0); // Addition
+  if (level >= 2) operations.push(1); // Subtraction
+  if (level >= 3) operations.push(2); // Multiplication
+  if (level >= 4) operations.push(3); // Division
+
+  const operation = operations[Math.floor(Math.random() * operations.length)];
+
+  // Define a small offset per level to scale difficulty
+  const offset = level - 1;
+
+  // Level-specific settings
+  if (level <= 2) {
+    currentCap = 15;
+
+    switch (operation) {
+      case 0: // Addition
+        do {
+          num1 = Math.floor(Math.random() * (8 + offset)) + 2;
+          num2 = Math.floor(Math.random() * (8 + offset)) + 2;
+          answer = num1 + num2;
+        } while (answer > currentCap);
+        text = `${num1} + ${num2}`;
+        break;
+
+      case 1: // Subtraction
+        num1 = Math.floor(Math.random() * (8 + offset)) + 8;
+        num2 = Math.floor(Math.random() * (5 + offset)) + 2;
+        answer = num1 - num2;
+        text = `${num1} − ${num2}`;
+        break;
+    }
+
+  } else if (level <= 4) {
+    currentCap = 30;
+
+    switch (operation) {
+      case 0: // Addition
+        do {
+          num1 = Math.floor(Math.random() * (12 + offset)) + 8;
+          num2 = Math.floor(Math.random() * (12 + offset)) + 8;
+          answer = num1 + num2;
+        } while (answer > currentCap || answer < 15);
+        text = `${num1} + ${num2}`;
+        break;
+
+      case 1: // Subtraction
+        do {
+          num1 = Math.floor(Math.random() * (20 + offset)) + 20;
+          num2 = Math.floor(Math.random() * (12 + offset)) + 5;
+          answer = num1 - num2;
+        } while (answer > currentCap || answer < 15);
+        text = `${num1} − ${num2}`;
+        break;
+
+      case 2: // Multiplication
+        do {
+          num1 = Math.floor(Math.random() * (5 + offset)) + 3;
+          num2 = Math.floor(Math.random() * (5 + offset)) + 3;
+          answer = num1 * num2;
+        } while (answer > currentCap);
+        text = `${num1} × ${num2}`;
+        break;
+
+      case 3: // Division
+        answer = Math.floor(Math.random() * (13 + offset)) + 15;
+        num2 = Math.floor(Math.random() * (4 + offset)) + 2;
+        num1 = answer * num2;
+        text = `${num1} ÷ ${num2}`;
+        break;
+    }
+
+  } else {
+    currentCap = 50;
+
+    switch (operation) {
+      case 0: // Addition
+        do {
+          num1 = Math.floor(Math.random() * (20 + offset)) + 15;
+          num2 = Math.floor(Math.random() * (20 + offset)) + 15;
+          answer = num1 + num2;
+        } while (answer > currentCap);
+        text = `${num1} + ${num2}`;
+        break;
+
+      case 1: // Subtraction
+        num1 = Math.floor(Math.random() * (30 + offset)) + 40;
+        num2 = Math.floor(Math.random() * (20 + offset)) + 10;
+        answer = num1 - num2;
+        if (answer > currentCap) answer = currentCap;
+        text = `${num1} − ${num2}`;
+        break;
+
+      case 2: // Multiplication
+        do {
+          num1 = Math.floor(Math.random() * (8 + offset)) + 2;
+          num2 = Math.floor(Math.random() * (8 + offset)) + 2;
+          answer = num1 * num2;
+        } while (answer > currentCap);
+        text = `${num1} × ${num2}`;
+        break;
+
+      case 3: // Division
+        answer = Math.floor(Math.random() * (25 + offset)) + 20;
+        num2 = Math.floor(Math.random() * (5 + offset)) + 2;
+        num1 = answer * num2;
+        text = `${num1} ÷ ${num2}`;
+        break;
+    }
+  }
+
+  return { text, answer, currentCap };
+}
+
+// Show mini-game when streak requirement is reached
+function showMiniGame() {
   const modal = document.getElementById("mini-game-modal");
   if (!modal) return;
 
-  const streakAchieved = gameState.currentStreak;
-  const unlockedCount = gameState.miniGamesUnlocked + 1; // +1 because we're about to unlock one
-  const nextRequirement = 10 + (unlockedCount * 5);
+  // Generate math problem based on difficulty
+  const level = gameState.miniGamesUnlocked + 1;
+  const problem = generateMathProblem(level);
 
-  // Update modal content
-  const modalMessage = document.getElementById("modal-message");
-  const modalStreakCount = document.getElementById("modal-streak-count");
-  const modalUnlockedCount = document.getElementById("modal-unlocked-count");
-  const modalNextGoal = document.getElementById("modal-next-goal");
+  // Store the correct answer for validation
+  modal.dataset.correctAnswer = problem.answer;
 
-  if (modalMessage) {
-    modalMessage.textContent = `Congratulations! You've reached a ${streakAchieved}-streak and unlocked a mini-game!`;
+  // Update problem display
+  const problemDisplay = document.getElementById("mini-game-problem");
+  if (problemDisplay) {
+    problemDisplay.textContent = problem.text;
   }
 
-  if (modalStreakCount) {
-    modalStreakCount.textContent = streakAchieved;
-  }
+  // Create mini-grid with enough rows for the current level's cap
+  createMiniGrid(problem.currentCap);
 
-  if (modalUnlockedCount) {
-    modalUnlockedCount.textContent = unlockedCount;
-  }
-
-  if (modalNextGoal) {
-    modalNextGoal.textContent = nextRequirement;
-  }
-
+  // Show modal
   modal.style.display = "flex";
+}
 
-  // Close button handler
-  const closeBtn = modal.querySelector(".modal-close-btn");
-  if (closeBtn) {
-    closeBtn.onclick = () => {
-      modal.style.display = "none";
-    };
+// Create the mini-grid with enough rows to fit the current level's cap
+function createMiniGrid(currentCap) {
+  const container = document.getElementById("mini-grid-container");
+  if (!container) return;
+
+  // Clear existing grid
+  container.innerHTML = "";
+
+  // Calculate number of rows needed for this level's cap (each row has 10 boxes)
+  const rowsNeeded = Math.ceil(currentCap / 10);
+
+  // Create the needed rows
+  for (let rowNum = 0; rowNum < rowsNeeded; rowNum++) {
+    const row = document.createElement("div");
+    row.className = "mini-row";
+
+    for (let boxNum = 0; boxNum < 10; boxNum++) {
+      const box = document.createElement("div");
+      box.className = "mini-box box"; // Add "box" class for compatibility
+
+      // Add target-box class to the first box
+      if (rowNum === 0 && boxNum === 0) {
+        box.classList.add("target-box");
+      }
+
+      row.appendChild(box);
+    }
+
+    container.appendChild(row);
+  }
+
+  // Setup drawing handlers for mini-grid
+  setupMiniGridDrawing();
+}
+
+// Setup drawing mechanism for mini-grid (reusing main grid logic)
+function setupMiniGridDrawing() {
+  const container = document.getElementById("mini-grid-container");
+  if (!container) return;
+
+  let isDrawing = false;
+  let drawStartBox = null;
+
+  // Get all mini boxes in order
+  function getAllMiniBoxes() {
+    const rows = Array.from(container.querySelectorAll(".mini-row"));
+    return rows.flatMap(row => Array.from(row.querySelectorAll(".box")));
+  }
+
+  // Get boxes from start to hover (same logic as main grid)
+  function getMiniBoxesFromStartToHover(startBox, hoverBox) {
+    const allBoxes = getAllMiniBoxes();
+    const startIndex = allBoxes.indexOf(startBox);
+    const hoverIndex = allBoxes.indexOf(hoverBox);
+
+    if (startIndex === -1 || hoverIndex === -1) return [];
+
+    const minIndex = Math.min(startIndex, hoverIndex);
+    const maxIndex = Math.max(startIndex, hoverIndex);
+
+    const boxes = [];
+    for (let i = minIndex; i <= maxIndex; i++) {
+      const box = allBoxes[i];
+      // Only include empty boxes
+      if (!box.hasChildNodes() || box.querySelector(".ghost-marble")) {
+        boxes.push(box);
+      }
+    }
+
+    return boxes;
+  }
+
+  function startDrawing(box) {
+    if (!box) return;
+
+    // Check if empty
+    if (box.hasChildNodes()) return;
+
+    // Only allow starting from first empty box
+    const allBoxes = getAllMiniBoxes();
+    const firstEmptyBox = allBoxes.find(b => !b.hasChildNodes());
+
+    if (!firstEmptyBox || box !== firstEmptyBox) {
+      return;
+    }
+
+    isDrawing = true;
+    drawStartBox = box;
+    addGhostMarble(box); // Reuse main grid function
+  }
+
+  function handleDrawMove(box) {
+    if (!isDrawing || !box) return;
+
+    const boxesToFill = getMiniBoxesFromStartToHover(drawStartBox, box);
+    clearAllGhostMarbles(); // Reuse main grid function
+    boxesToFill.forEach(b => addGhostMarble(b)); // Reuse main grid function
+  }
+
+  function endDrawing() {
+    if (!isDrawing) return;
+    isDrawing = false;
+
+    // Validate answer
+    validateMiniGameAnswer();
+
+    drawStartBox = null;
+  }
+
+  // Mouse events
+  container.addEventListener("mousedown", (e) => {
+    const box = e.target.closest(".box");
+    if (box) {
+      startDrawing(box);
+      e.preventDefault();
+    }
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!isDrawing) return;
+    const box = e.target?.closest ? e.target.closest(".box") : null;
+    handleDrawMove(box);
+  });
+
+  document.addEventListener("mouseup", () => {
+    endDrawing();
+  });
+
+  // Touch events
+  container.addEventListener("touchstart", (e) => {
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      const element = document.elementFromPoint(touch.clientX, touch.clientY);
+      const box = element?.closest(".box");
+      if (box) {
+        startDrawing(box);
+        e.preventDefault();
+      }
+    }
+  }, { passive: false });
+
+  document.addEventListener("touchmove", (e) => {
+    if (!isDrawing) return;
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      const element = document.elementFromPoint(touch.clientX, touch.clientY);
+      const box = element?.closest(".box");
+      handleDrawMove(box);
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  document.addEventListener("touchend", () => {
+    endDrawing();
+  }, { passive: false });
+}
+
+// Validate the mini-game answer
+function validateMiniGameAnswer() {
+  const modal = document.getElementById("mini-game-modal");
+  const container = document.getElementById("mini-grid-container");
+  if (!modal || !container) return;
+
+  const correctAnswer = parseInt(modal.dataset.correctAnswer);
+  const ghostMarbles = container.querySelectorAll(".ghost-marble");
+  const userAnswer = ghostMarbles.length;
+
+  // Get the boxes with ghost marbles
+  const drawnBoxes = Array.from(ghostMarbles).map(ghost => ghost.parentElement);
+
+  // Clear ghost marbles
+  clearAllGhostMarbles();
+
+  const isCorrect = userAnswer === correctAnswer;
+
+  const modalContent = modal.querySelector(".mini-game-content");
+
+  if (isCorrect) {
+    // Show success feedback (green boxes) and place actual marbles
+    drawnBoxes.forEach((box) => {
+      box.classList.add("draw-correct");
+
+      // Create and add a real marble to this box
+      const marble = document.createElement("div");
+      marble.className = "marble";
+      box.appendChild(marble);
+    });
+
+    if (modalContent) {
+      modalContent.classList.add("shine");
+    }
+
+    setTimeout(() => {
+      const firstEmptyBox = getFirstEmptyBox();
+
+      if (firstEmptyBox && modalContent) {
+        const modalRect = modalContent.getBoundingClientRect();
+        const targetRect = firstEmptyBox.box.getBoundingClientRect();
+
+        const deltaX = targetRect.left + (targetRect.width / 2) - (modalRect.left + modalRect.width / 2);
+        const deltaY = targetRect.top + (targetRect.height / 2) - (modalRect.top + modalRect.height / 2);
+
+        modalContent.style.setProperty('--collapse-x', `${deltaX}px`);
+        modalContent.style.setProperty('--collapse-y', `${deltaY}px`);
+        modalContent.classList.add("collapse-to-target");
+      }
+
+      const modalBackground = modal.querySelector(".modal-background");
+      if (modalBackground) {
+        modalBackground.classList.add("fade-out");
+      }
+
+      setTimeout(() => {
+        if (modalContent) {
+          modalContent.classList.remove("collapse-to-target");
+          modalContent.classList.remove("shine");
+          modalContent.style.transform = "";
+          modalContent.style.opacity = "";
+          modalContent.style.removeProperty('--collapse-x');
+          modalContent.style.removeProperty('--collapse-y');
+        }
+        const modalBackground = modal.querySelector(".modal-background");
+        if (modalBackground) {
+          modalBackground.classList.remove("fade-out");
+        }
+
+        modal.style.display = "none";
+        container.innerHTML = "";
+
+        setTimeout(() => {
+          placeMarbleGroupInGrid(correctAnswer);
+        }, 100);
+      }, 600);
+    }, 400);
+  } else {
+    // Show error feedback (red boxes)
+    drawnBoxes.forEach((box) => box.classList.add("draw-incorrect"));
+
+    // Add shake animation to modal
+    if (modalContent) {
+      modalContent.classList.add("shake");
+    }
+
+    // Wait for shake, then slide out to side
+    setTimeout(() => {
+      if (modalContent) {
+        modalContent.classList.remove("shake");
+        modalContent.classList.add("slide-out-side");
+      }
+
+      // Fade out the modal background
+      const modalBackground = modal.querySelector(".modal-background");
+      if (modalBackground) {
+        modalBackground.classList.add("fade-out");
+      }
+
+      // Wait for slide animation, then close modal
+      setTimeout(() => {
+        // Remove animation classes and reset transforms
+        if (modalContent) {
+          modalContent.classList.remove("slide-out-side");
+          modalContent.style.transform = "";
+          modalContent.style.opacity = "";
+        }
+        if (modalBackground) {
+          modalBackground.classList.remove("fade-out");
+        }
+
+        // Close modal
+        modal.style.display = "none";
+        container.innerHTML = ""; // Clean up
+      }, 500); // Wait for slide animation
+    }, 500); // Show red feedback and shake
   }
 }
 
@@ -975,6 +1352,15 @@ function fillDrawnBoxes(boxes, isCorrect) {
       // Generate new target number
       generateTargetNumber();
 
+      // Update target-box highlight for next empty box
+      document.querySelectorAll(".box.target-box").forEach((box) => {
+        box.classList.remove("target-box");
+      });
+      const firstEmptyBox = getFirstEmptyBox();
+      if (firstEmptyBox) {
+        firstEmptyBox.box.classList.add("target-box");
+      }
+
       // Update streak (only in active game phase)
       if (gameState.gamePhase === "active") {
         gameState.currentStreak++;
@@ -983,7 +1369,7 @@ function fillDrawnBoxes(boxes, isCorrect) {
         // Check if we've reached the next streak requirement
         if (gameState.currentStreak >= gameState.nextStreakRequirement) {
           setTimeout(() => {
-            showMiniGamePlaceholder();
+            showMiniGame();
             gameState.miniGamesUnlocked++;
             resetStreak();
           }, 500);
@@ -1194,6 +1580,11 @@ function updateModeUI() {
   const targetNumber = document.getElementById("target-number");
   const modeControls = document.querySelector(".mode-controls");
 
+  // Remove target-box from all boxes first
+  document.querySelectorAll(".box.target-box").forEach((box) => {
+    box.classList.remove("target-box");
+  });
+
   if (gameState.gameMode === "draw") {
     // Draw mode (active phase)
     // Hide marble group container
@@ -1207,6 +1598,12 @@ function updateModeUI() {
 
     // Hide challenge button with transition (can't go back to drag mode)
     if (modeControls) modeControls.classList.add("hidden");
+
+    // Highlight the first empty box
+    const firstEmptyBox = getFirstEmptyBox();
+    if (firstEmptyBox) {
+      firstEmptyBox.box.classList.add("target-box");
+    }
   } else {
     // Drag mode (practice phase)
     // Show marble group container
@@ -1220,13 +1617,20 @@ function updateModeUI() {
 
     // Show "Start Challenge!" button
     if (modeControls) modeControls.classList.remove("hidden");
+
+    // Highlight the first empty box
+    const firstEmptyBox = getFirstEmptyBox();
+    if (firstEmptyBox) {
+      firstEmptyBox.box.classList.add("target-box");
+    }
   }
 }
 
 export {
-  addMarbles,
+  createMarblesInGroup,
   setupDragHandlers,
   setupDrawModeHandlers,
   updateModeUI,
   startChallenge,
+  showMiniGame,
 };

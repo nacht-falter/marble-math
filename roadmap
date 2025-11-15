@@ -8,10 +8,13 @@
 - [ ] Display some instructions popup on starting the game and when switching modes.
 - [x] Don't show thousands position on collapsed hundreds boxes after the first 1000 collapse (e.g. 100 instead of 1100).
 - [x] Responsive Layout
+- [ ] Hide target display content while minigame modal is active
+- [ ] Show current level at the top
+- [ ] Show current score at the top
 
 ## Gameplay
 - [x] Add score system with streaks which build up until a minigame pops up.
-- [ ] Mini-Games: Every once in a while a mini game pops up after a task is completed. The player has to solve a math task (addition, substraction, multiplication, division) by drawing the correct amount of marbles in a smaller grid inside the mini game popup. If solved correctly, the popup window is closed and the marbles are added to the main grid.
+- [x] Mini-Games: Every once in a while a mini game pops up after a task is completed. The player has to solve a math task (addition, substraction, multiplication, division) by drawing the correct amount of marbles in a smaller grid inside the mini game popup. If solved correctly, the popup window is closed and the marbles are added to the main grid.
 - [ ] Increase difficulty in draw mode by increasing number size.
 - [ ] New "target" game mode, where the player has to click on the correct box instead of drawing the correct amount of marbles. This is an advanced mode, since it lacks the visual feedback.
 - [ ] Update instructions.

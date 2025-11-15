@@ -334,7 +334,7 @@ body {
   -ms-user-select: none;
 }
 
-.box.drop-target {
+.box.target-box {
   background-color: var(--bg-light-blue);
   border-color: var(--primary-blue-light);
   border-width: 3px;
@@ -614,7 +614,8 @@ button:hover {
    =================================== */
 
 /* Tablets - intermediate sizing */
-@media (min-width: 601px) and (max-width: 850px) {
+/* Tablet screens */
+@media (min-width: 481px) and (max-width: 992px) {
   html, body {
     height: 100vh;
     overflow: hidden;
@@ -669,7 +670,7 @@ button:hover {
 }
 
 /* Desktop and larger screens */
-@media (min-width: 851px) {
+@media (min-width: 993px) {
   html, body {
     height: 100vh;
     overflow: hidden;
@@ -903,12 +904,33 @@ button:hover {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+}
+
+.modal-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
   animation: modalFadeIn 0.3s ease-out;
+  transition: opacity 0.5s ease-out;
+}
+
+.modal-background.fade-out {
+  opacity: 0;
+}
+
+.modal-wrapper {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .modal-content {
@@ -1023,10 +1045,166 @@ button:hover {
 @keyframes modalSlideIn {
   0% {
     transform: translateY(-50px);
-    opacity: 0;
   }
   100% {
     transform: translateY(0);
-    opacity: 1;
+  }
+}
+
+/* Mini-game styles */
+.mini-game-content {
+  background-color: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  max-width: 90vw;
+  width: 100%;
+  text-align: center;
+  transition: box-shadow 0.3s ease-out;
+}
+
+.mini-game-content.shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+.mini-game-content.shine {
+  box-shadow: 0 0 40px 10px rgba(46, 204, 113, 0.8),
+              0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.mini-game-content.slide-out-side {
+  animation: slideOutSide 0.5s ease-in forwards;
+}
+
+.mini-game-content.collapse-to-target {
+  animation: collapseToTarget 0.6s cubic-bezier(0.4, 0.0, 0.6, 1) forwards;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+  20%, 40%, 60%, 80% { transform: translateX(10px); }
+}
+
+@keyframes slideOutSide {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-150%);
+  }
+}
+
+@keyframes collapseToTarget {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    transform: translate(var(--collapse-x), var(--collapse-y)) scale(0);
+  }
+}
+
+.mini-game-instruction {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.mini-game-problem {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--purple);
+  margin: 1rem 0;
+}
+
+.mini-grid-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5%;
+  margin: 1rem auto;
+  padding: 1rem;
+  background: var(--bg-grid);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 100%;
+  user-select: none;
+}
+
+.mini-row {
+  display: flex;
+  gap: 0.5%;
+  justify-content: center;
+  width: 100%;
+}
+
+.mini-box {
+  flex: 1;
+  aspect-ratio: 1;
+  max-width: 10%;
+  border: 2px solid var(--primary-blue-dark);
+  border-radius: 6px;
+  background: white;
+  cursor: crosshair;
+  transition: all 0.15s ease;
+}
+
+.mini-box.filled {
+  background: radial-gradient(
+    circle at 30% 30%,
+    var(--primary-blue-light),
+    var(--primary-blue-dark)
+  );
+  box-shadow: var(--shadow-marble);
+}
+
+.mini-box:hover {
+  border-color: var(--primary-blue-bright);
+}
+
+/* Responsive adjustments */
+/* Mobile phones */
+@media (max-width: 480px) {
+  .mini-game-content {
+    max-width: 97vw;
+    padding: 15px 1vw;
+  }
+
+  .mini-game-problem {
+    font-size: 1.5rem;
+    margin: 0.5rem 0;
+  }
+
+  .mini-game-instruction {
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .mini-grid-container {
+    padding: 0.5rem;
+    margin: 0.5rem auto;
+  }
+}
+
+/* Tablets */
+@media (min-width: 481px) and (max-width: 992px) {
+  .mini-game-content {
+    max-width: 90vw;
+    padding: 20px 2vw;
+  }
+
+  .mini-game-problem {
+    font-size: 2rem;
+  }
+
+  .mini-grid-container {
+    padding: 0.75rem;
+  }
+}
+
+/* Desktop */
+@media (min-width: 993px) {
+  .mini-game-content {
+    max-width: 600px;
+    padding: 30px;
   }
 }

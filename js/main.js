@@ -1,6 +1,6 @@
 import { addRow } from "./grid.js";
 import {
-  addMarbles,
+  createMarblesInGroup,
   setupDragHandlers,
   setupDrawModeHandlers,
   startChallenge,
@@ -143,7 +143,7 @@ function initGame() {
   updateStreakDisplay();
 
   addRow();
-  addMarbles();
+  createMarblesInGroup();
 }
 
 // Start the game when page loads
@@ -178,6 +178,15 @@ document.addEventListener("DOMContentLoaded", () => {
         instructionsSection.style.display = "none";
         instructionsBtn.textContent = "How to Play";
       }
+    });
+  }
+
+  // Setup test mini-game button (for testing purposes)
+  const testMiniGameBtn = document.getElementById("test-minigame-btn");
+  if (testMiniGameBtn) {
+    testMiniGameBtn.addEventListener("click", async () => {
+      const { showMiniGame } = await import("./modes.js");
+      showMiniGame();
     });
   }
 });

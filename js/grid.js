@@ -48,7 +48,7 @@ function createRow(startValue) {
 }
 
 // Add a row to the grid
-function addRow() {
+function addRow(animate = true) {
   const gridContainer = document.getElementById("grid-container");
 
   // Calculate the starting value based on the last regular row
@@ -59,13 +59,19 @@ function addRow() {
 
   const rowData = createRow(startValue);
 
-  // FLIP animation: First - record positions of existing rows before change
-  const existingRowElements = Array.from(gridContainer.querySelectorAll('.row-wrapper'));
-  const firstPositions = existingRowElements.map(el => el.getBoundingClientRect().top);
-
   // Last - make the DOM change
   gameState.rows.push(rowData);
   gridContainer.appendChild(rowData.element);
+
+  if (!animate) {
+    // No animation - just show the row immediately
+    rowData.element.classList.add("fading-in");
+    return rowData;
+  }
+
+  // FLIP animation: First - record positions of existing rows before change
+  const existingRowElements = Array.from(gridContainer.querySelectorAll('.row-wrapper:not(:last-child)'));
+  const firstPositions = existingRowElements.map(el => el.getBoundingClientRect().top);
 
   // Start with new row invisible (using !important to override animation)
   rowData.element.style.setProperty('opacity', '0', 'important');

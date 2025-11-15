@@ -49,28 +49,21 @@
       <div class="controls">
         <button id="reset-btn">Reset Game</button>
         <button id="instructions-btn">How to Play</button>
+        <button id="test-minigame-btn">Test Mini-Game</button>
       </div>
 
-      <!-- Mini-game placeholder modal -->
+      <!-- Mini-game modal -->
       <div id="mini-game-modal" class="modal" style="display: none">
-        <div class="modal-content">
-          <h2 id="modal-title">🎉 Mini-Game Unlocked!</h2>
-          <p class="modal-message" id="modal-message">
-            Congratulations! You've reached a 10-streak and unlocked a
-            mini-game!
-          </p>
-          <p class="modal-submessage">
-            Mini-games are coming soon! For now, enjoy your achievement and keep
-            building those streaks!
-          </p>
-          <div class="modal-stats">
-            <p>
-              <strong>Streak:</strong> <span id="modal-streak-count">10</span> correct answers in a row
-            </p>
-            <p><strong>Mini-games unlocked:</strong> <span id="modal-unlocked-count">1</span></p>
-            <p><strong>Next goal:</strong> <span id="modal-next-goal">15</span> streak</p>
+        <div class="modal-background"></div>
+        <div class="modal-wrapper">
+          <div class="mini-game-content">
+            <h2 id="mini-game-title">🎉 Bonus Challenge!</h2>
+            <p class="mini-game-instruction">Draw the answer using marbles:</p>
+            <h3 class="mini-game-problem" id="mini-game-problem">5 + 3</h3>
+            <div id="mini-grid-container" class="mini-grid-container">
+              <!-- Mini-grid will be created here -->
+            </div>
           </div>
-          <button class="modal-close-btn">Continue Playing</button>
         </div>
       </div>
 
