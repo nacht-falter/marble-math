@@ -167,10 +167,12 @@ body {
   transition: all 0.3s ease-out;
 }
 
-/* Hide target display when mini-game modal is active */
-.target-number-container.hidden-for-minigame {
-  opacity: 0;
+/* Dim target display when mini-game modal is about to appear or is active */
+.target-number-container.disabled-for-minigame {
+  opacity: 0.3;
   pointer-events: none;
+  filter: grayscale(0.8);
+  transition: opacity 0.3s ease-out, filter 0.3s ease-out;
 }
 
 .target-number-display {

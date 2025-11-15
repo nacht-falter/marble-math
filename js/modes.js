@@ -1017,10 +1017,10 @@ function showMiniGame() {
   // Create mini-grid with enough rows for the current level's cap
   createMiniGrid(problem.currentCap);
 
-  // Hide target display container
+  // Ensure target display container is disabled (should already be disabled from earlier)
   const targetContainer = document.querySelector(".target-number-container");
   if (targetContainer) {
-    targetContainer.classList.add("hidden-for-minigame");
+    targetContainer.classList.add("disabled-for-minigame");
   }
 
   // Show modal
@@ -1256,10 +1256,22 @@ function validateMiniGameAnswer() {
         modal.style.display = "none";
         container.innerHTML = "";
 
-        // Show target display container again
+        // Re-enable target display container and generate new target
         const targetContainer = document.querySelector(".target-number-container");
         if (targetContainer) {
-          targetContainer.classList.remove("hidden-for-minigame");
+          targetContainer.classList.remove("disabled-for-minigame");
+        }
+
+        // Generate new target number after mini game closes
+        generateTargetNumber();
+
+        // Update target-box highlight for next empty box
+        document.querySelectorAll(".box.target-box").forEach((box) => {
+          box.classList.remove("target-box");
+        });
+        const firstEmptyBox = getFirstEmptyBox();
+        if (firstEmptyBox) {
+          firstEmptyBox.box.classList.add("target-box");
         }
 
         setTimeout(() => {
@@ -1305,10 +1317,22 @@ function validateMiniGameAnswer() {
         modal.style.display = "none";
         container.innerHTML = ""; // Clean up
 
-        // Show target display container again
+        // Re-enable target display container and generate new target
         const targetContainer = document.querySelector(".target-number-container");
         if (targetContainer) {
-          targetContainer.classList.remove("hidden-for-minigame");
+          targetContainer.classList.remove("disabled-for-minigame");
+        }
+
+        // Generate new target number after mini game closes
+        generateTargetNumber();
+
+        // Update target-box highlight for next empty box
+        document.querySelectorAll(".box.target-box").forEach((box) => {
+          box.classList.remove("target-box");
+        });
+        const firstEmptyBox = getFirstEmptyBox();
+        if (firstEmptyBox) {
+          firstEmptyBox.box.classList.add("target-box");
         }
       }, 500); // Wait for slide animation
     }, 500); // Show red feedback and shake
@@ -1392,19 +1416,8 @@ function fillDrawnBoxes(boxes, isCorrect) {
         }
       }
 
-      // Generate new target number
-      generateTargetNumber();
-
-      // Update target-box highlight for next empty box
-      document.querySelectorAll(".box.target-box").forEach((box) => {
-        box.classList.remove("target-box");
-      });
-      const firstEmptyBox = getFirstEmptyBox();
-      if (firstEmptyBox) {
-        firstEmptyBox.box.classList.add("target-box");
-      }
-
       // Update streak (only in active game phase)
+      let willShowMiniGame = false;
       if (gameState.gamePhase === "active") {
         // Only increment streak if we haven't reached the requirement yet
         // This prevents going from 10/10 to 11/10, 12/10, etc.
@@ -1414,12 +1427,35 @@ function fillDrawnBoxes(boxes, isCorrect) {
 
           // Check if we've just reached the requirement
           if (gameState.currentStreak >= gameState.nextStreakRequirement) {
+            willShowMiniGame = true;
+
+            // Immediately disable target display to show mini game is coming
+            const targetContainer = document.querySelector(".target-number-container");
+            if (targetContainer) {
+              targetContainer.classList.add("disabled-for-minigame");
+            }
+
             setTimeout(() => {
               showMiniGame();
               gameState.miniGamesUnlocked++;
               resetStreak();
             }, 500);
           }
+        }
+      }
+
+      // Only generate new target and update highlights if we're NOT about to show a mini game
+      if (!willShowMiniGame) {
+        // Generate new target number
+        generateTargetNumber();
+
+        // Update target-box highlight for next empty box
+        document.querySelectorAll(".box.target-box").forEach((box) => {
+          box.classList.remove("target-box");
+        });
+        const firstEmptyBox = getFirstEmptyBox();
+        if (firstEmptyBox) {
+          firstEmptyBox.box.classList.add("target-box");
         }
       }
     }, 300);
