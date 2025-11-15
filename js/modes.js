@@ -621,6 +621,7 @@ function setupDrawModeHandlers() {
   const gridContainer = document.getElementById("grid-container");
   let isDrawing = false;
   let drawStartBox = null;
+  let lastRowAddY = -Infinity; // Track Y position where we last added a row
 
   // Helper function to start drawing
   function startDrawing(box) {
@@ -640,6 +641,7 @@ function setupDrawModeHandlers() {
 
     isDrawing = true;
     drawStartBox = box;
+    lastRowAddY = -Infinity; // Reset Y position tracking
 
     // Add preview to start box
     addGhostMarble(box);
@@ -664,8 +666,9 @@ function setupDrawModeHandlers() {
   }, { passive: false });
 
   // Helper function for draw move
-  function handleDrawMove(box) {
+  function handleDrawMove(box, clientY) {
     if (!isDrawing || gameState.gameMode !== "draw") return;
+
     if (!box) return;
 
     // Get all empty boxes from start to current hover
@@ -681,7 +684,7 @@ function setupDrawModeHandlers() {
   // Mouse move handler
   document.addEventListener("mousemove", (e) => {
     const box = e.target?.closest ? e.target.closest(".box") : null;
-    handleDrawMove(box);
+    handleDrawMove(box, e.clientY);
   });
 
   // Touch move handler
@@ -690,7 +693,7 @@ function setupDrawModeHandlers() {
       const touch = e.touches[0];
       const element = document.elementFromPoint(touch.clientX, touch.clientY);
       const box = element?.closest(".box");
-      handleDrawMove(box);
+      handleDrawMove(box, touch.clientY);
       e.preventDefault(); // Prevent scrolling while drawing
     }
   }, { passive: false });
@@ -1461,28 +1464,29 @@ function ensureEmptyRowAvailable() {
   }
 }
 
-// Remove unnecessary empty rows (keep only one empty row after the last row with content)
+// Remove unnecessary empty rows (but keep enough for the current max target)
 function removeUnnecessaryEmptyRows() {
+  // Only applies to draw mode
+  if (gameState.gameMode !== "draw") {
+    return;
+  }
+
   // Get all regular (non-collapsed) rows
   const regularRows = gameState.rows.filter((row) => !row.isCollapsed);
-
-  // Debug: show all rows and their content status
-  regularRows.forEach((row, i) => {
-    const hasContent = row.boxes.some((box) => box.hasChildNodes());
-    const contentTypes = row.boxes
-      .map((box) => {
-        if (!box.hasChildNodes()) return "E";
-        const child = box.firstChild;
-        if (child.classList.contains("ghost-marble")) return "G";
-        if (child.classList.contains("marble")) return "M";
-        return "?";
-      })
-      .join("");
-  });
 
   if (regularRows.length <= 1) {
     return;
   }
+
+  // Calculate max possible target for current level (same logic as ensureEmptyRowBelowLastRow)
+  const level = gameState.level;
+  const maxTargetForLevel = Math.min(9 + level, 30);
+
+  // Count total empty boxes
+  let totalEmptyBoxes = 0;
+  regularRows.forEach(row => {
+    totalEmptyBoxes += row.boxes.filter(b => !b.hasChildNodes()).length;
+  });
 
   // Find the last row that has ANY content
   let lastRowWithContent = null;
@@ -1498,8 +1502,17 @@ function removeUnnecessaryEmptyRows() {
   }
 
   if (lastRowWithContentIndex === -1) {
-    // Keep only the first row, remove all others
-    const rowsToRemove = regularRows.slice(1);
+    // All rows are empty - keep enough for max target, remove the rest
+    const rowsToRemove = [];
+
+    for (let i = regularRows.length - 1; i >= 0; i--) {
+      // Only remove if we'd still have enough empty boxes after removal
+      if (totalEmptyBoxes - 10 >= maxTargetForLevel) {
+        rowsToRemove.push(regularRows[i]);
+        totalEmptyBoxes -= 10;
+      }
+    }
+
     if (rowsToRemove.length > 0) {
       const gridContainer = document.getElementById("grid-container");
 
@@ -1528,15 +1541,19 @@ function removeUnnecessaryEmptyRows() {
     return;
   }
 
-  // All rows after the last row with content that are empty should be removed, except the first one
+  // All rows after the last row with content that are empty can be removed
+  // BUT only if we still have enough empty boxes for max target
   const rowsToRemove = [];
-  for (let i = lastRowWithContentIndex + 1; i < regularRows.length; i++) {
+  for (let i = regularRows.length - 1; i > lastRowWithContentIndex; i--) {
     const row = regularRows[i];
     const isEmpty = row.boxes.every((box) => !box.hasChildNodes());
 
-    if (isEmpty && i > lastRowWithContentIndex + 1) {
-      // This is an empty row after the first empty row - remove it
-      rowsToRemove.push(row);
+    if (isEmpty) {
+      // Only remove if we'd still have enough empty boxes after removal
+      if (totalEmptyBoxes - 10 >= maxTargetForLevel) {
+        rowsToRemove.push(row);
+        totalEmptyBoxes -= 10;
+      }
     }
   }
 
@@ -1569,32 +1586,30 @@ function removeUnnecessaryEmptyRows() {
   }, 500);
 }
 
-// Ensure there's an empty row below the last row if the last row has any content
+// Ensure there are enough empty rows to accommodate the current max target number
 function ensureEmptyRowBelowLastRow() {
+  // Only applies to draw mode
+  if (gameState.gameMode !== "draw") {
+    return;
+  }
+
   // Get all regular (non-collapsed) rows
   const regularRows = gameState.rows.filter((row) => !row.isCollapsed);
 
-  if (regularRows.length === 0) {
-    return;
-  }
+  // Count total empty boxes available
+  let totalEmptyBoxes = 0;
+  regularRows.forEach(row => {
+    totalEmptyBoxes += row.boxes.filter(b => !b.hasChildNodes()).length;
+  });
 
-  // Get the last regular row
-  const lastRegularRow = regularRows[regularRows.length - 1];
-  const lastRowIndex = gameState.rows.indexOf(lastRegularRow);
+  // Calculate max possible target for current level (same logic as generateTargetNumber)
+  const level = gameState.level;
+  const maxTargetForLevel = Math.min(9 + level, 30);
 
-  // Check if the last row has ANY content (ghost marbles or real marbles)
-  const hasAnyContent = lastRegularRow.boxes.some((box) => box.hasChildNodes());
-
-  if (!hasAnyContent) {
-    return;
-  }
-
-  // Check if there's already a row after the last row
-  const nextRowIndex = lastRowIndex + 1;
-  const hasNextRow = nextRowIndex < gameState.rows.length;
-
-  if (!hasNextRow) {
+  // Add rows until we have enough empty boxes for the max target
+  while (totalEmptyBoxes < maxTargetForLevel) {
     addRow();
+    totalEmptyBoxes += 10; // Each new row adds 10 empty boxes
   }
 }
 

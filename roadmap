@@ -20,9 +20,10 @@
 - [ ] New "target" game mode, where the player has to click on the correct box instead of drawing the correct amount of marbles. This is an advanced mode, since it lacks the visual feedback.
 - [ ] Update instructions.
 - [ ] Balance streak multipliers?
+- [ ] Introduce some losing condition for game over
 
 # Bugfixes
 - [x] Fix messed up grid after 200 collapse appears
 - [x] Disable split indicators for marbles placed in first box of a row
-- [ ] Can't add 11, 12 or higher numbers of marbles if the last row is an empty row because ther is not enough room in the row.
+- [x] Can't add 11, 12 or higher numbers of marbles if the last row is an empty row because there is not enough room in the row.
 - [ ] Hide target display on mini game trigger before the next target is shown.

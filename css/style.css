@@ -23,7 +23,7 @@
   --accent-green: #27ae60;
 
   /* Purple colors */
-  --purple-lightest: #f0e6ff;
+  --purple-lightest: #c5abec;
   --purple-light: #9b59b6;
   --purple: #8e44ad;
   --purple-lighter: #a569bd;
@@ -819,13 +819,6 @@ button:hover {
   max-width: 150px;
 }
 
-/* Level display */
-.level-display {
-  background: linear-gradient(135deg, var(--purple-lightest), var(--purple-light));
-  border-color: var(--purple-dark);
-  box-shadow: 0 3px 8px var(--purple-shadow);
-}
-
 /* Common content container */
 .stats-badge-content {
   display: flex;
@@ -884,7 +877,7 @@ button:hover {
 }
 
 .level-display .stats-badge-secondary {
-  color: var(--purple);
+  color: var(--purple-dark);
 }
 
 .level-display .stats-badge-progress-container {
