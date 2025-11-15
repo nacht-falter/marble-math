@@ -159,6 +159,7 @@ function collapseToThousand(thousandValue) {
   }
 
   // Remove rows from gameState immediately (for game logic)
+  // Note: currentRowIndex will be reset by the calling code in modes.js
   rowsToRemove.forEach((row) => {
     const index = gameState.rows.indexOf(row);
     if (index > -1) {
@@ -211,40 +212,15 @@ function collapseToThousand(thousandValue) {
   }
 }
 
-// Collapse 10 rows into a single hundred row
+// Collapse all regular rows into a single hundred row
 function collapseToHundred(hundredValue) {
   const gridContainer = document.getElementById("grid-container");
 
-  // Collect rows to remove
-  const rowsToRemove = [];
-  let removedCount = 0;
-  let i = 0;
-
-  // Find the first 10 regular rows to remove
-  while (removedCount < 10 && i < gameState.rows.length) {
-    const row = gameState.rows[i];
-    if (!row.isCollapsed) {
-      rowsToRemove.push(row);
-      removedCount++;
-    }
-    i++;
-  }
-
-  // Also find any extra row that was created for the hundredth marble
-  i = 0;
-  while (i < gameState.rows.length) {
-    const row = gameState.rows[i];
-    if (
-      !row.isCollapsed &&
-      row.startValue >= hundredValue &&
-      !rowsToRemove.includes(row)
-    ) {
-      rowsToRemove.push(row);
-    }
-    i++;
-  }
+  // Collect ALL regular (non-collapsed) rows to remove
+  const rowsToRemove = gameState.rows.filter((row) => !row.isCollapsed);
 
   // Remove rows from gameState immediately (for game logic)
+  // Note: currentRowIndex will be reset by the calling code in modes.js
   rowsToRemove.forEach((row) => {
     const index = gameState.rows.indexOf(row);
     if (index > -1) {
