@@ -18,4 +18,4 @@
 
 # Bugfixes
 - [x] Fix messed up grid after 200 collapse appears
-- [ ] Disable split indicators for marbles placed in first box of a row
+- [x] Disable split indicators for marbles placed in first box of a row
