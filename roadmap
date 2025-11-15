@@ -2,23 +2,27 @@
 ## Styles and Layout
 - [x] Fix marble size and color for new marbles (not yet placed in grid). Should be same size as marbles in grid and the same as or similar to ghost marbles.
 - [x] Place target number underneath grid in draw and target modes.
-- [ ] Add some nice visuals to show scored points once score system is implemented
+- [ ] Add some nice visuals to show scored points, level-ups etc. once score system is implemented
 - [x] Disable text selection on grid to avoid accidental text selection while drawing or dragging.
 - [ ] Add a main menu screen with "Start game" button and some settings.
 - [ ] Display some instructions popup on starting the game and when switching modes.
 - [x] Don't show thousands position on collapsed hundreds boxes after the first 1000 collapse (e.g. 100 instead of 1100).
 - [x] Responsive Layout
-- [ ] Hide target display content while minigame modal is active
-- [ ] Show current level at the top
-- [ ] Show current score at the top
+- [x] Hide target display content while minigame modal is active
+- [x] Show current level at the top
+- [x] Show current score at the top
+- [ ] Update color scheme for marbles placed in grid to look more cohesive.
 
 ## Gameplay
 - [x] Add score system with streaks which build up until a minigame pops up.
 - [x] Mini-Games: Every once in a while a mini game pops up after a task is completed. The player has to solve a math task (addition, substraction, multiplication, division) by drawing the correct amount of marbles in a smaller grid inside the mini game popup. If solved correctly, the popup window is closed and the marbles are added to the main grid.
-- [ ] Increase difficulty in draw mode by increasing number size.
+- [x] Increase difficulty in draw mode by increasing number size.
 - [ ] New "target" game mode, where the player has to click on the correct box instead of drawing the correct amount of marbles. This is an advanced mode, since it lacks the visual feedback.
 - [ ] Update instructions.
+- [ ] Balance streak multipliers?
 
 # Bugfixes
 - [x] Fix messed up grid after 200 collapse appears
 - [x] Disable split indicators for marbles placed in first box of a row
+- [ ] Can't add 11, 12 or higher numbers of marbles if the last row is an empty row because ther is not enough room in the row.
+- [ ] Hide target display on mini game trigger before the next target is shown.

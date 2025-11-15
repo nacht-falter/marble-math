@@ -3,6 +3,8 @@ import {
   updateCountDisplay,
   resetStreak,
   updateStreakDisplay,
+  updateLevelDisplay,
+  updateMarbleCountDisplay,
 } from "./main.js";
 
 import {
@@ -78,6 +80,12 @@ function placeMarbleGroupInGrid(directCount = null) {
     newMarble.className = "marble";
 
     gameState.totalMarbles++;
+    // Track marbles placed in active mode for level calculation
+    // Multiply by current streak (minimum 1x)
+    if (gameState.gamePhase === "active") {
+      const streakMultiplier = Math.max(1, gameState.currentStreak);
+      gameState.score += streakMultiplier;
+    }
     newMarble.textContent = gameState.totalMarbles;
 
     newMarble.style.background = `radial-gradient(circle at 30% 30%, ${currentRow.color.marbleLight}, ${currentRow.color.marbleDark})`;
@@ -588,7 +596,15 @@ function setupDragHandlers() {
 
 // Generate a new target number for draw mode
 function generateTargetNumber() {
-  gameState.currentTargetNumber = Math.floor(Math.random() * 10) + 1;
+  const level = gameState.level;
+
+  // Progressive difficulty: both min and max increase by 1 per level
+  // Level 1: 1-10, Level 2: 2-11, Level 3: 3-12, etc.
+  // Cap at reasonable maximum (30)
+  const min = level;
+  const max = Math.min(9 + level, 30);
+
+  gameState.currentTargetNumber = Math.floor(Math.random() * (max - min + 1)) + min;
   updateTargetDisplay();
 }
 
@@ -983,7 +999,7 @@ function showMiniGame() {
   if (!modal) return;
 
   // Generate math problem based on difficulty
-  const level = gameState.miniGamesUnlocked + 1;
+  const level = gameState.level;
   const problem = generateMathProblem(level);
 
   // Store the correct answer for validation
@@ -997,6 +1013,12 @@ function showMiniGame() {
 
   // Create mini-grid with enough rows for the current level's cap
   createMiniGrid(problem.currentCap);
+
+  // Hide target display container
+  const targetContainer = document.querySelector(".target-number-container");
+  if (targetContainer) {
+    targetContainer.classList.add("hidden-for-minigame");
+  }
 
   // Show modal
   modal.style.display = "flex";
@@ -1231,6 +1253,12 @@ function validateMiniGameAnswer() {
         modal.style.display = "none";
         container.innerHTML = "";
 
+        // Show target display container again
+        const targetContainer = document.querySelector(".target-number-container");
+        if (targetContainer) {
+          targetContainer.classList.remove("hidden-for-minigame");
+        }
+
         setTimeout(() => {
           placeMarbleGroupInGrid(correctAnswer);
         }, 100);
@@ -1273,6 +1301,12 @@ function validateMiniGameAnswer() {
         // Close modal
         modal.style.display = "none";
         container.innerHTML = ""; // Clean up
+
+        // Show target display container again
+        const targetContainer = document.querySelector(".target-number-container");
+        if (targetContainer) {
+          targetContainer.classList.remove("hidden-for-minigame");
+        }
       }, 500); // Wait for slide animation
     }, 500); // Show red feedback and shake
   }
@@ -1294,6 +1328,12 @@ function fillDrawnBoxes(boxes, isCorrect) {
         newMarble.className = "marble";
 
         gameState.totalMarbles++;
+        // Track marbles placed in active mode for level calculation
+        // Multiply by current streak (minimum 1x)
+        if (gameState.gamePhase === "active") {
+          const streakMultiplier = Math.max(1, gameState.currentStreak);
+          gameState.score += streakMultiplier;
+        }
         newMarble.textContent = gameState.totalMarbles;
 
         // Get current row for color
@@ -1363,16 +1403,20 @@ function fillDrawnBoxes(boxes, isCorrect) {
 
       // Update streak (only in active game phase)
       if (gameState.gamePhase === "active") {
-        gameState.currentStreak++;
-        updateStreakDisplay(true); // Animate on increase
+        // Only increment streak if we haven't reached the requirement yet
+        // This prevents going from 10/10 to 11/10, 12/10, etc.
+        if (gameState.currentStreak < gameState.nextStreakRequirement) {
+          gameState.currentStreak++;
+          updateStreakDisplay(true); // Animate on increase
 
-        // Check if we've reached the next streak requirement
-        if (gameState.currentStreak >= gameState.nextStreakRequirement) {
-          setTimeout(() => {
-            showMiniGame();
-            gameState.miniGamesUnlocked++;
-            resetStreak();
-          }, 500);
+          // Check if we've just reached the requirement
+          if (gameState.currentStreak >= gameState.nextStreakRequirement) {
+            setTimeout(() => {
+              showMiniGame();
+              gameState.miniGamesUnlocked++;
+              resetStreak();
+            }, 500);
+          }
         }
       }
     }, 300);
@@ -1566,6 +1610,11 @@ function startChallenge() {
   gameState.gamePhase = "active";
   updateModeUI();
   generateTargetNumber();
+
+  // Activate all stat badges immediately
+  updateLevelDisplay();
+  updateMarbleCountDisplay();
+  updateStreakDisplay();
 }
 
 // Update UI based on current mode

@@ -19,9 +19,31 @@ const gameState = {
   streakBestRun: 0,
   miniGamesUnlocked: 0, // Track how many mini-games have been unlocked
   milestonesShown: [], // Track which milestone prompts have been shown (100, 200, etc.)
+  currentLevel: 1, // Track player level based on score
+  score: 0, // Score earned in active mode (marbles × streak multiplier)
   // Calculate next streak requirement (10, 15, 20, 25, ...)
   get nextStreakRequirement() {
     return 10 + (this.miniGamesUnlocked * 5);
+  },
+  // Calculate level based on score (scaling: 250, 500, 750, 1000, ...)
+  get level() {
+    // Each level requires 250 more points than the last
+    // Level 1: 0-249, Level 2: 250-749, Level 3: 750-1499, etc.
+    // Formula: level = floor((sqrt(1 + 8*score/250) - 1) / 2) + 1
+    return Math.floor((Math.sqrt(1 + 8 * this.score / 250) - 1) / 2) + 1;
+  },
+  // Calculate total score needed for a given level
+  getScoreForLevel(level) {
+    // Sum of arithmetic sequence: n * (n - 1) / 2 * 250
+    return (level - 1) * level / 2 * 250;
+  },
+  // Calculate score needed for next level
+  get scoreForNextLevel() {
+    return this.getScoreForLevel(this.level + 1);
+  },
+  // Calculate score needed for current level
+  get scoreForCurrentLevel() {
+    return this.getScoreForLevel(this.level);
   },
 };
 
@@ -53,9 +75,42 @@ function generateRandomShade(baseHue) {
   };
 }
 
+// Update marble count badge
+function updateMarbleCountDisplay() {
+  const marbleCountNumber = document.getElementById("marble-count-number");
+  const marbleCountProgressFill = document.getElementById("marble-count-progress-fill");
+  const marbleCountBadge = document.getElementById("marble-count-badge");
+
+  if (marbleCountNumber) {
+    marbleCountNumber.textContent = gameState.totalMarbles;
+  }
+
+  if (marbleCountProgressFill) {
+    // Show progress to next hundred (0-100)
+    const marblesInCurrentHundred = gameState.totalMarbles % 100;
+    const progress = (marblesInCurrentHundred / 100) * 100;
+    marbleCountProgressFill.style.width = `${progress}%`;
+  }
+
+  // Always show marble count badge (tracks total marbles in both practice and active modes)
+  if (marbleCountBadge) {
+    marbleCountBadge.classList.remove("hidden");
+  }
+}
+
 // Update count display
 function updateCountDisplay() {
-  // Function kept for future count-related logic
+  // Track previous level to detect level-ups
+  const previousLevel = gameState.currentLevel;
+  const newLevel = gameState.level;
+
+  // Update stored level
+  gameState.currentLevel = newLevel;
+
+  // Animate if level increased
+  const shouldAnimate = newLevel > previousLevel;
+  updateLevelDisplay(shouldAnimate);
+  updateMarbleCountDisplay();
 }
 
 // Reset streak and update best run if necessary
@@ -65,6 +120,54 @@ function resetStreak() {
   }
   gameState.currentStreak = 0;
   updateStreakDisplay();
+}
+
+// Update level display
+function updateLevelDisplay(shouldAnimate = false) {
+  const levelNumber = document.getElementById("level-number");
+  const levelScoreProgress = document.getElementById("level-score-progress");
+  const levelProgressFill = document.getElementById("level-progress-bar-fill");
+  const levelDisplay = document.getElementById("level-display");
+
+  if (levelNumber) {
+    levelNumber.textContent = gameState.level;
+  }
+
+  if (levelScoreProgress) {
+    // Show current score progress within this level
+    const scoreForCurrentLevel = gameState.scoreForCurrentLevel;
+    const scoreForNextLevel = gameState.scoreForNextLevel;
+    const pointsInCurrentLevel = gameState.score - scoreForCurrentLevel;
+    const pointsNeededForNextLevel = scoreForNextLevel - scoreForCurrentLevel;
+    levelScoreProgress.textContent = `${pointsInCurrentLevel}/${pointsNeededForNextLevel}`;
+  }
+
+  if (levelProgressFill) {
+    // Calculate progress within current level
+    const scoreForCurrentLevel = gameState.scoreForCurrentLevel;
+    const scoreForNextLevel = gameState.scoreForNextLevel;
+    const pointsInCurrentLevel = gameState.score - scoreForCurrentLevel;
+    const pointsNeededForNextLevel = scoreForNextLevel - scoreForCurrentLevel;
+    const progress = (pointsInCurrentLevel / pointsNeededForNextLevel) * 100;
+    levelProgressFill.style.width = `${progress}%`;
+  }
+
+  // Add bump animation when level increases
+  if (shouldAnimate && levelDisplay) {
+    levelDisplay.classList.add("bump");
+    setTimeout(() => {
+      levelDisplay.classList.remove("bump");
+    }, 300);
+  }
+
+  // Always show level display in active mode
+  if (levelDisplay) {
+    if (gameState.gamePhase === "active") {
+      levelDisplay.classList.remove("hidden");
+    } else {
+      levelDisplay.classList.add("hidden");
+    }
+  }
 }
 
 // Update streak display
@@ -97,12 +200,12 @@ function updateStreakDisplay(shouldAnimate = false) {
     }, 500);
   }
 
-  // Update visibility based on game phase and streak
+  // Always show streak counter in active mode
   if (streakCounter) {
-    if (gameState.currentStreak === 0 && gameState.gamePhase === "practice") {
-      streakCounter.classList.add("hidden");
-    } else {
+    if (gameState.gamePhase === "active") {
       streakCounter.classList.remove("hidden");
+    } else {
+      streakCounter.classList.add("hidden");
     }
   }
 }
@@ -130,6 +233,7 @@ function initGame() {
   gameState.streakBestRun = 0;
   gameState.miniGamesUnlocked = 0;
   gameState.milestonesShown = [];
+  gameState.score = 0;
 
   // Initialize "Start Challenge" button
   const modeToggleBtn = document.getElementById("mode-toggle-btn");
@@ -141,6 +245,7 @@ function initGame() {
   // Update displays
   updateModeUI();
   updateStreakDisplay();
+  updateLevelDisplay();
 
   addRow();
   createMarblesInGroup();
@@ -180,15 +285,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-
-  // Setup test mini-game button (for testing purposes)
-  const testMiniGameBtn = document.getElementById("test-minigame-btn");
-  if (testMiniGameBtn) {
-    testMiniGameBtn.addEventListener("click", async () => {
-      const { showMiniGame } = await import("./modes.js");
-      showMiniGame();
-    });
-  }
 });
 
 export {
@@ -198,4 +294,6 @@ export {
   updateCountDisplay,
   resetStreak,
   updateStreakDisplay,
+  updateLevelDisplay,
+  updateMarbleCountDisplay,
 };

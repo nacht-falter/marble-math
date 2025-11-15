@@ -8,15 +8,41 @@
   </head>
   <body>
     <div class="game-container">
-      <!-- Streak counter - always visible -->
-      <div class="streak-counter" id="streak-counter">
-        <div class="streak-content">
-          <span class="fire-icon">🔥</span>
-          <span id="streak-number" class="streak-number">0</span>
-          <span id="streak-target" class="streak-target">/10</span>
+      <!-- Stats bar with level and streak -->
+      <div class="stats-bar">
+        <!-- Level display -->
+        <div class="stats-badge level-display" id="level-display">
+          <div class="stats-badge-content">
+            <span class="stats-badge-icon">⭐</span>
+            <span id="level-number" class="stats-badge-number">1</span>
+            <span class="stats-badge-secondary" id="level-score-progress">0/100</span>
+          </div>
+          <div class="stats-badge-progress-container">
+            <div class="stats-badge-progress-fill" id="level-progress-bar-fill"></div>
+          </div>
         </div>
-        <div class="streak-progress-bar-container">
-          <div class="streak-progress-bar-fill" id="streak-progress-bar-fill"></div>
+
+        <!-- Marble count -->
+        <div class="stats-badge marble-count" id="marble-count-badge">
+          <div class="stats-badge-content">
+            <span class="stats-badge-icon">🔵</span>
+            <span id="marble-count-number" class="stats-badge-number">0</span>
+          </div>
+          <div class="stats-badge-progress-container">
+            <div class="stats-badge-progress-fill" id="marble-count-progress-fill"></div>
+          </div>
+        </div>
+
+        <!-- Streak counter -->
+        <div class="stats-badge streak-counter" id="streak-counter">
+          <div class="stats-badge-content">
+            <span class="stats-badge-icon">🔥</span>
+            <span id="streak-number" class="stats-badge-number">0</span>
+            <span id="streak-target" class="stats-badge-secondary">/10</span>
+          </div>
+          <div class="stats-badge-progress-container">
+            <div class="stats-badge-progress-fill" id="streak-progress-bar-fill"></div>
+          </div>
         </div>
       </div>
 
@@ -49,7 +75,6 @@
       <div class="controls">
         <button id="reset-btn">Reset Game</button>
         <button id="instructions-btn">How to Play</button>
-        <button id="test-minigame-btn">Test Mini-Game</button>
       </div>
 
       <!-- Mini-game modal -->
