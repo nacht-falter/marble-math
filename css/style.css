@@ -625,29 +625,69 @@ body {
   white-space: nowrap;
 }
 
-.instructions-section {
-  margin-top: 20px;
-  padding: 20px;
+/* Instructions modal */
+.instructions-modal-content {
   background-color: var(--bg-body);
-  border-radius: 8px;
-  border: 2px solid var(--primary-blue-light);
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 600px;
+  width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: var(--shadow-lg);
 }
 
-.instructions-section h3 {
+.instructions-modal-content h2 {
   margin-top: 0;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   color: var(--text-dark);
   text-align: center;
+  font-size: 1.8rem;
 }
 
-.instructions-section p {
-  margin: 10px 0;
-  line-height: 1.6;
+.instructions-content p {
+  margin: 15px 0;
+  line-height: 1.7;
   color: var(--text-secondary);
+  font-size: 1rem;
 }
 
-.instructions-section strong {
+.instructions-content strong {
   color: var(--text-dark);
+  font-size: 1.05rem;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none !important;
+  border: none;
+  font-size: 2.5rem;
+  font-weight: 300;
+  line-height: 1;
+  color: #000 !important;
+  opacity: 0.3;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: opacity 0.15s ease;
+}
+
+.modal-close-btn:hover {
+  opacity: 0.6;
+  background: none !important;
+  color: #000 !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 button {
@@ -1555,6 +1595,35 @@ button:hover {
   .mini-grid-container {
     padding: 0.5rem;
     margin: 0.5rem auto;
+  }
+
+  .instructions-modal-content {
+    width: 95vw;
+    padding: 20px;
+    max-height: 85vh;
+  }
+
+  .instructions-modal-content h2 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+  }
+
+  .instructions-content p {
+    margin: 12px 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .instructions-content strong {
+    font-size: 1rem;
+  }
+
+  .modal-close-btn {
+    font-size: 2.2rem;
+    top: 8px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
   }
 }
 

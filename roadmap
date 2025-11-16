@@ -5,7 +5,7 @@
 - [ ] Add some nice visuals to show scored points, level-ups etc. once score system is implemented
 - [x] Disable text selection on grid to avoid accidental text selection while drawing or dragging.
 - [ ] Add a main menu screen with "Start game" button and some settings.
-- [ ] Display some instructions popup on starting the game and when switching modes.
+- [ ] Display some instructions popup on starting the game and when switching modes. Maybe with short animations on how to play?
 - [x] Don't show thousands position on collapsed hundreds boxes after the first 1000 collapse (e.g. 100 instead of 1100).
 - [x] Responsive Layout
 - [x] Hide target display content while minigame modal is active
@@ -37,6 +37,6 @@
 - [x] Unify collapse logic for drag and draw modes to prevent future bugs.
 - [x] Fix collapse box width for medium screens.
 - [x] Fix width for marble group on medium screen sizes
-- [ ] Marble count is not being reset on reset game
-- [ ] Instructions are not fully visible on mobile.
+- [x] Marble count is not being reset on reset game
+- [x] Instructions are not fully visible on mobile.
 

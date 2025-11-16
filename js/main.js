@@ -333,19 +333,31 @@ document.addEventListener("DOMContentLoaded", () => {
     modeToggleBtn.addEventListener("click", startChallenge);
   }
 
-  // Setup instructions toggle button
+  // Setup instructions modal
   const instructionsBtn = document.getElementById("instructions-btn");
-  const instructionsSection = document.getElementById("instructions-section");
-  if (instructionsBtn && instructionsSection) {
+  const instructionsModal = document.getElementById("instructions-modal");
+  const instructionsCloseBtn = document.getElementById("instructions-close-btn");
+
+  if (instructionsBtn && instructionsModal) {
+    // Open modal when button is clicked
     instructionsBtn.addEventListener("click", () => {
-      if (instructionsSection.style.display === "none") {
-        instructionsSection.style.display = "block";
-        instructionsBtn.textContent = "Hide Instructions";
-      } else {
-        instructionsSection.style.display = "none";
-        instructionsBtn.textContent = "How to Play";
-      }
+      instructionsModal.style.display = "flex";
     });
+
+    // Close modal when close button is clicked
+    if (instructionsCloseBtn) {
+      instructionsCloseBtn.addEventListener("click", () => {
+        instructionsModal.style.display = "none";
+      });
+    }
+
+    // Close modal when clicking on backdrop
+    const modalBackground = instructionsModal.querySelector(".modal-background");
+    if (modalBackground) {
+      modalBackground.addEventListener("click", () => {
+        instructionsModal.style.display = "none";
+      });
+    }
   }
 });
 
