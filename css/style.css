@@ -134,13 +134,14 @@ body {
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: none; /* No transition when showing */
+  transition: all 0.3s ease-in-out;
   box-shadow: var(--shadow-sm);
+  transform: translateY(0);
 }
 
 .mode-controls.hidden .mode-toggle-btn {
   opacity: 0;
-  transition: opacity 0.2s ease-out; /* Only transition when hiding */
+  transition: opacity 0.2s ease-out;
 }
 
 .mode-toggle-btn:hover:not(:disabled) {
@@ -453,7 +454,7 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 1.5em;
+  font-size: 1.2em;
   filter: grayscale(100%) brightness(2);
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   pointer-events: none;
@@ -1641,6 +1642,12 @@ button:hover {
   .mini-grid-container {
     padding: 0.75rem;
   }
+
+  .modal-close-btn {
+    font-size: 2.5rem;
+    width: 40px;
+    height: 40px;
+  }
 }
 
 /* Desktop */
@@ -1648,5 +1655,11 @@ button:hover {
   .mini-game-content {
     max-width: 600px;
     padding: 30px;
+  }
+
+  .modal-close-btn {
+    font-size: 2.5rem;
+    width: 40px;
+    height: 40px;
   }
 }
