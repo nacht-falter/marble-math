@@ -92,6 +92,29 @@ function updateMarbleCountDisplay() {
     marbleCountProgressFill.style.width = `${progress}%`;
   }
 
+  // Update tooltip values
+  const tooltipMarbleCount = document.getElementById("tooltip-marble-count");
+  const tooltipNextCollapse = document.getElementById("tooltip-next-collapse");
+  const tooltipNextCollapse2 = document.getElementById("tooltip-next-collapse-2");
+  const tooltipMarbleProgress = document.getElementById("tooltip-marble-progress");
+
+  if (tooltipMarbleCount) {
+    const marblesInCurrentHundred = gameState.totalMarbles % 100;
+    tooltipMarbleCount.textContent = marblesInCurrentHundred;
+  }
+
+  if (tooltipNextCollapse || tooltipNextCollapse2) {
+    const nextCollapse = Math.ceil((gameState.totalMarbles + 1) / 100) * 100;
+    if (tooltipNextCollapse) tooltipNextCollapse.textContent = nextCollapse;
+    if (tooltipNextCollapse2) tooltipNextCollapse2.textContent = 100;
+  }
+
+  if (tooltipMarbleProgress) {
+    const marblesInCurrentHundred = gameState.totalMarbles % 100;
+    const progress = (marblesInCurrentHundred / 100) * 100;
+    tooltipMarbleProgress.style.width = `${progress}%`;
+  }
+
   // Always show marble count badge (tracks total marbles in both practice and active modes)
   if (marbleCountBadge) {
     marbleCountBadge.classList.remove("hidden");
@@ -133,23 +156,35 @@ function updateLevelDisplay(shouldAnimate = false) {
     levelNumber.textContent = gameState.level;
   }
 
+  // Calculate score progress for current level
+  const scoreForCurrentLevel = gameState.scoreForCurrentLevel;
+  const scoreForNextLevel = gameState.scoreForNextLevel;
+  const pointsInCurrentLevel = gameState.score - scoreForCurrentLevel;
+  const pointsNeededForNextLevel = scoreForNextLevel - scoreForCurrentLevel;
+
   if (levelScoreProgress) {
-    // Show current score progress within this level
-    const scoreForCurrentLevel = gameState.scoreForCurrentLevel;
-    const scoreForNextLevel = gameState.scoreForNextLevel;
-    const pointsInCurrentLevel = gameState.score - scoreForCurrentLevel;
-    const pointsNeededForNextLevel = scoreForNextLevel - scoreForCurrentLevel;
     levelScoreProgress.textContent = `${pointsInCurrentLevel}/${pointsNeededForNextLevel}`;
   }
 
   if (levelProgressFill) {
-    // Calculate progress within current level
-    const scoreForCurrentLevel = gameState.scoreForCurrentLevel;
-    const scoreForNextLevel = gameState.scoreForNextLevel;
-    const pointsInCurrentLevel = gameState.score - scoreForCurrentLevel;
-    const pointsNeededForNextLevel = scoreForNextLevel - scoreForCurrentLevel;
     const progress = (pointsInCurrentLevel / pointsNeededForNextLevel) * 100;
     levelProgressFill.style.width = `${progress}%`;
+  }
+
+  // Update tooltip values
+  const tooltipLevel = document.getElementById("tooltip-level");
+  const tooltipScore = document.getElementById("tooltip-score");
+  const tooltipScoreNeeded = document.getElementById("tooltip-score-needed");
+  const tooltipScoreNeeded2 = document.getElementById("tooltip-score-needed-2");
+  const tooltipLevelProgress = document.getElementById("tooltip-level-progress");
+
+  if (tooltipLevel) tooltipLevel.textContent = gameState.level;
+  if (tooltipScore) tooltipScore.textContent = pointsInCurrentLevel;
+  if (tooltipScoreNeeded) tooltipScoreNeeded.textContent = pointsNeededForNextLevel;
+  if (tooltipScoreNeeded2) tooltipScoreNeeded2.textContent = pointsNeededForNextLevel;
+  if (tooltipLevelProgress) {
+    const progress = (pointsInCurrentLevel / pointsNeededForNextLevel) * 100;
+    tooltipLevelProgress.style.width = `${progress}%`;
   }
 
   // Add bump animation when level increases
@@ -190,6 +225,20 @@ function updateStreakDisplay(shouldAnimate = false) {
   if (streakProgressFill) {
     const progress = Math.min((gameState.currentStreak / nextRequirement) * 100, 100);
     streakProgressFill.style.width = `${progress}%`;
+  }
+
+  // Update tooltip values
+  const tooltipStreak = document.getElementById("tooltip-streak");
+  const tooltipStreakGoal = document.getElementById("tooltip-streak-goal");
+  const tooltipStreakGoal2 = document.getElementById("tooltip-streak-goal-2");
+  const tooltipStreakProgress = document.getElementById("tooltip-streak-progress");
+
+  if (tooltipStreak) tooltipStreak.textContent = gameState.currentStreak;
+  if (tooltipStreakGoal) tooltipStreakGoal.textContent = nextRequirement;
+  if (tooltipStreakGoal2) tooltipStreakGoal2.textContent = nextRequirement;
+  if (tooltipStreakProgress) {
+    const progress = Math.min((gameState.currentStreak / nextRequirement) * 100, 100);
+    tooltipStreakProgress.style.width = `${progress}%`;
   }
 
   // Add bump animation when streak increases
