@@ -48,32 +48,19 @@ const gameState = {
 };
 
 // Base colors for each tens group (0-9, 10-19, 20-29, etc.)
+// Harmonious palette that coordinates with UI colors (blues, purples, yellows)
 const baseColors = [
-  { hue: 250, name: "indigo" }, // 0-9
-  { hue: 0, name: "red" }, // 10-19
-  { hue: 140, name: "green" }, // 20-29
-  { hue: 35, name: "orange" }, // 30-39
-  { hue: 280, name: "purple" }, // 40-49
-  { hue: 190, name: "cyan" }, // 50-59
-  { hue: 330, name: "pink" }, // 60-69
-  { hue: 60, name: "yellow" }, // 70-79
-  { hue: 25, name: "brown" }, // 80-89
-  { hue: 160, name: "teal" }, // 90-99
+  { label: "hsl(210, 65%, 55%)", marbleLight: "hsl(210, 65%, 65%)", marbleDark: "hsl(210, 65%, 40%)", name: "soft-blue" }, // 0-9
+  { label: "hsl(175, 55%, 50%)", marbleLight: "hsl(175, 55%, 60%)", marbleDark: "hsl(175, 55%, 35%)", name: "teal" }, // 10-19
+  { label: "hsl(140, 50%, 52%)", marbleLight: "hsl(140, 50%, 62%)", marbleDark: "hsl(140, 50%, 37%)", name: "mint" }, // 20-29
+  { label: "hsl(90, 50%, 55%)", marbleLight: "hsl(90, 50%, 65%)", marbleDark: "hsl(90, 50%, 40%)", name: "lime" }, // 30-39
+  { label: "hsl(45, 70%, 55%)", marbleLight: "hsl(45, 70%, 65%)", marbleDark: "hsl(45, 70%, 40%)", name: "gold" }, // 40-49
+  { label: "hsl(25, 70%, 58%)", marbleLight: "hsl(25, 70%, 68%)", marbleDark: "hsl(25, 70%, 43%)", name: "orange" }, // 50-59
+  { label: "hsl(15, 65%, 60%)", marbleLight: "hsl(15, 65%, 70%)", marbleDark: "hsl(15, 65%, 45%)", name: "coral" }, // 60-69
+  { label: "hsl(340, 55%, 60%)", marbleLight: "hsl(340, 55%, 70%)", marbleDark: "hsl(340, 55%, 45%)", name: "rose" }, // 70-79
+  { label: "hsl(300, 45%, 60%)", marbleLight: "hsl(300, 45%, 70%)", marbleDark: "hsl(300, 45%, 45%)", name: "magenta" }, // 80-89
+  { label: "hsl(270, 50%, 65%)", marbleLight: "hsl(270, 50%, 70%)", marbleDark: "hsl(270, 50%, 50%)", name: "lavender" }, // 90-99
 ];
-
-// Generate a random shade of a base color
-function generateRandomShade(baseHue) {
-  // Vary saturation between 50-80%
-  const saturation = 50 + Math.random() * 30;
-  // Vary lightness between 40-60%
-  const lightness = 40 + Math.random() * 20;
-
-  return {
-    label: `hsl(${baseHue}, ${saturation}%, ${lightness}%)`,
-    marbleLight: `hsl(${baseHue}, ${saturation}%, ${Math.min(lightness + 10, 70)}%)`,
-    marbleDark: `hsl(${baseHue}, ${saturation}%, ${Math.max(lightness - 15, 20)}%)`,
-  };
-}
 
 // Update marble count badge
 function updateMarbleCountDisplay() {
@@ -339,7 +326,6 @@ document.addEventListener("DOMContentLoaded", () => {
 export {
   gameState,
   baseColors,
-  generateRandomShade,
   updateCountDisplay,
   resetStreak,
   updateStreakDisplay,

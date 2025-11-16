@@ -1,7 +1,6 @@
 import {
   gameState,
-  baseColors,
-  generateRandomShade
+  baseColors
 } from "./main.js";
 
 // Create a row of 10 boxes
@@ -9,13 +8,10 @@ function createRow(startValue) {
   const rowWrapper = document.createElement("div");
   rowWrapper.className = "row-wrapper";
 
-  // Get base color for this tens group based on the tens place
+  // Get color for this tens group based on the tens place
   const tensPlace = Math.floor(startValue / 10);
   const baseColorIndex = tensPlace % baseColors.length;
-  const baseColor = baseColors[baseColorIndex];
-
-  // Generate random shade of this base color
-  const rowColor = generateRandomShade(baseColor.hue);
+  const rowColor = baseColors[baseColorIndex];
 
   // Create label for the tenths value
   const label = document.createElement("div");
