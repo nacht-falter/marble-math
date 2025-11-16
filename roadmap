@@ -12,13 +12,15 @@
 - [x] Show current level at the top
 - [x] Show current score at the top
 - [ ] Update color scheme for marbles placed in grid to look more cohesive.
+- [ ] Add title attributes to badges at the top.
+- [ ] Replace text on reset and instructions buttons with icons, add title attributes.
 
 ## Gameplay
 - [x] Add score system with streaks which build up until a minigame pops up.
 - [x] Mini-Games: Every once in a while a mini game pops up after a task is completed. The player has to solve a math task (addition, substraction, multiplication, division) by drawing the correct amount of marbles in a smaller grid inside the mini game popup. If solved correctly, the popup window is closed and the marbles are added to the main grid.
 - [x] Increase difficulty in draw mode by increasing number size.
 - [ ] New "target" game mode, where the player has to click on the correct box instead of drawing the correct amount of marbles. This is an advanced mode, since it lacks the visual feedback.
-- [ ] Update instructions.
+- [x] Update instructions.
 - [ ] Balance streak multipliers?
 - [ ] Introduce some losing condition for game over
 

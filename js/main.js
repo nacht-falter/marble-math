@@ -239,7 +239,7 @@ function initGame() {
   const modeToggleBtn = document.getElementById("mode-toggle-btn");
   if (modeToggleBtn) {
     modeToggleBtn.disabled = false;
-    modeToggleBtn.textContent = "Start Challenge!";
+    modeToggleBtn.textContent = "🎯 Start Challenge!";
   }
 
   // Update displays
