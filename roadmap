@@ -33,5 +33,6 @@
 - [x] Layout bug for screen size around 486 to approx. 781 px: Grid rows not fully visible (reduced box size from 9vw to 7.5vw for tablet screens).
 - [x] Fix broken split logic in drag mode.
 - [x] Fix issue when user switches to draw mode from drag mode with some marbles on the first row.
-- [ ] Fix row collapse bug in drag mode (again!)
-- [ ] Unify collapse logic for drag and draw modes to prevent future bugs.
+- [x] Fix row collapse bug in drag mode (again!)
+- [x] Unify collapse logic for drag and draw modes to prevent future bugs.
+- [x] Fix collapse box width for medium screens.

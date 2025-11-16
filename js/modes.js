@@ -93,45 +93,10 @@ function placeMarbleGroupInGrid(directCount = null) {
     currentRow.boxes[emptyBoxIndex].appendChild(newMarble);
     currentRow.marbleCount++;
 
-    if (gameState.totalMarbles % 1000 === 0) {
-      const gridContainer = document.getElementById("grid-container");
-      const regularRowsToRemove = gameState.rows.filter(
-        (row) => !row.isCollapsed,
-      );
-      regularRowsToRemove.forEach((row) => {
-        const index = gameState.rows.indexOf(row);
-        if (index > -1) {
-          gameState.rows.splice(index, 1);
-        }
-        row.element.classList.add("collapsing-out");
-        setTimeout(() => {
-          if (row.element.parentNode) {
-            gridContainer.removeChild(row.element);
-          }
-        }, 500);
-      });
-
-      // Collapse hundred-boxes into thousand row (animation happens in background)
-      collapseToThousand(gameState.totalMarbles);
-
-      // After collapse, reset row index and ensure a new row is created
-      gameState.currentRowIndex = gameState.rows.length;
-      currentRow = null;
-
-      // Create a fresh new row for the next set of marbles
-      addRow();
-      gameState.currentRowIndex = gameState.rows.length - 1;
-    } else if (gameState.totalMarbles % 100 === 0) {
-      // Show milestone prompt (suggest starting challenge)
-      showMilestonePrompt(gameState.totalMarbles);
-
-      // Collapse rows (animation happens in background)
-      collapseToHundred(gameState.totalMarbles % 1000);
-
-      // After collapse, only collapsed hundred-boxes remain
-      // Set currentRowIndex beyond the array so next marble triggers row creation
-      gameState.currentRowIndex = gameState.rows.length;
-      currentRow = null;
+    // Check for collapses and update currentRow if a new row was created
+    const newRow = handleCollapse();
+    if (newRow) {
+      currentRow = newRow;
     }
   }
 
@@ -794,8 +759,9 @@ function getBoxesFromStartToHover(startBox, hoverBox) {
   return boxes;
 }
 
-// Check for collapses at milestones
-function checkForCollapses() {
+// Unified collapse handler for both drag and draw modes
+// Returns the newly created row for drag mode to update currentRow
+function handleCollapse() {
   if (gameState.totalMarbles % 1000 === 0 && gameState.totalMarbles > 0) {
     // Remove any regular rows that might exist
     const gridContainer = document.getElementById("grid-container");
@@ -818,10 +784,23 @@ function checkForCollapses() {
     // Collapse hundred-boxes into thousand row
     collapseToThousand(gameState.totalMarbles);
 
-    // Reset row index and create new row
+    // Reset row index
     gameState.currentRowIndex = gameState.rows.length;
-    addRow();
-    gameState.currentRowIndex = gameState.rows.length - 1;
+
+    // Only create a new row if there are no regular rows left
+    // (ensureEmptyRowBelowLastRow may have already created one)
+    const hasRegularRow = gameState.rows.some((row) => !row.isCollapsed);
+    if (!hasRegularRow) {
+      addRow();
+      gameState.currentRowIndex = gameState.rows.length - 1;
+    } else {
+      // Find the first regular row
+      const firstRegularIndex = gameState.rows.findIndex((row) => !row.isCollapsed);
+      gameState.currentRowIndex = firstRegularIndex;
+    }
+
+    // Return the current row for drag mode
+    return gameState.rows[gameState.currentRowIndex];
   } else if (gameState.totalMarbles % 100 === 0 && gameState.totalMarbles > 0) {
     // Show milestone prompt (suggest starting challenge)
     showMilestonePrompt(gameState.totalMarbles);
@@ -831,7 +810,29 @@ function checkForCollapses() {
 
     // Reset row index
     gameState.currentRowIndex = gameState.rows.length;
+
+    // Only create a new row if there are no regular rows left
+    // (ensureEmptyRowBelowLastRow may have already created one)
+    const hasRegularRow = gameState.rows.some((row) => !row.isCollapsed);
+    if (!hasRegularRow) {
+      addRow();
+      gameState.currentRowIndex = gameState.rows.length - 1;
+    } else {
+      // Find the first regular row
+      const firstRegularIndex = gameState.rows.findIndex((row) => !row.isCollapsed);
+      gameState.currentRowIndex = firstRegularIndex;
+    }
+
+    // Return the current row for drag mode
+    return gameState.rows[gameState.currentRowIndex];
   }
+
+  return null; // No collapse occurred
+}
+
+// Check for collapses at milestones (used by draw mode)
+function checkForCollapses() {
+  handleCollapse();
 }
 
 // Show milestone prompt when player reaches 100, 200, 300, etc. marbles

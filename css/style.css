@@ -723,6 +723,19 @@ button:hover {
   .row {
     gap: 1px;
   }
+
+  /* Fix collapsed box sizes to match regular box size */
+  .hundred-box {
+    width: calc(75vw + 9px); /* 10 boxes * 7.5vw + 9 gaps * 1px */
+    height: 7.5vw;
+    font-size: 4vw;
+  }
+
+  .thousand-box {
+    width: calc(75vw + 9px); /* 10 boxes * 7.5vw + 9 gaps * 1px */
+    height: 7.5vw;
+    font-size: 4vw;
+  }
 }
 
 /* Desktop and larger screens */
