@@ -16,7 +16,6 @@ const gameState = {
   currentTargetNumber: 0,
   gamePhase: "practice", // 'practice' or 'active'
   currentStreak: 0,
-  streakBestRun: 0,
   miniGamesUnlocked: 0, // Track how many mini-games have been unlocked
   milestonesShown: [], // Track which milestone prompts have been shown (100, 200, etc.)
   currentLevel: 1, // Track player level based on score
@@ -62,189 +61,216 @@ const baseColors = [
   { label: "hsl(270, 50%, 65%)", marbleLight: "hsl(270, 50%, 70%)", marbleDark: "hsl(270, 50%, 50%)", name: "lavender" }, // 90-99
 ];
 
-// Update marble count badge
-function updateMarbleCountDisplay() {
-  const marbleCountNumber = document.getElementById("marble-count-number");
-  const marbleCountProgressFill = document.getElementById("marble-count-progress-fill");
-  const marbleCountBadge = document.getElementById("marble-count-badge");
+// ============================================
+// Counter State Mutations
+// ============================================
+const counters = {
+  // Marble counter operations
+  incrementMarbles(amount = 1) {
+    gameState.totalMarbles += amount;
+  },
 
-  if (marbleCountNumber) {
-    marbleCountNumber.textContent = gameState.totalMarbles;
+  resetMarbles() {
+    gameState.totalMarbles = 0;
+  },
+
+  // Streak counter operations
+  incrementStreak() {
+    gameState.currentStreak++;
+  },
+
+  resetStreak() {
+    gameState.currentStreak = 0;
+  },
+
+  // Score/Level operations
+  addScore(points) {
+    gameState.score += points;
+  },
+
+  resetScore() {
+    gameState.score = 0;
+    gameState.currentLevel = 1;
+  },
+
+  // Mini-game unlock operations
+  incrementMiniGames() {
+    gameState.miniGamesUnlocked++;
+  },
+
+  resetMiniGames() {
+    gameState.miniGamesUnlocked = 0;
   }
+};
 
-  if (marbleCountProgressFill) {
-    // Show progress to next hundred (0-100)
-    const marblesInCurrentHundred = gameState.totalMarbles % 100;
-    const progress = (marblesInCurrentHundred / 100) * 100;
-    marbleCountProgressFill.style.width = `${progress}%`;
-  }
+// ============================================
+// Display Update Functions
+// ============================================
+const display = {
+  updateMarbles() {
+    const marbleCountNumber = document.getElementById("marble-count-number");
+    const marbleCountProgressFill = document.getElementById("marble-count-progress-fill");
+    const marbleCountBadge = document.getElementById("marble-count-badge");
 
-  // Update tooltip values
-  const tooltipMarbleCount = document.getElementById("tooltip-marble-count");
-  const tooltipNextCollapse = document.getElementById("tooltip-next-collapse");
-  const tooltipNextCollapse2 = document.getElementById("tooltip-next-collapse-2");
-  const tooltipMarbleProgress = document.getElementById("tooltip-marble-progress");
-
-  if (tooltipMarbleCount) {
-    const marblesInCurrentHundred = gameState.totalMarbles % 100;
-    tooltipMarbleCount.textContent = marblesInCurrentHundred;
-  }
-
-  if (tooltipNextCollapse || tooltipNextCollapse2) {
-    const nextCollapse = Math.ceil((gameState.totalMarbles + 1) / 100) * 100;
-    if (tooltipNextCollapse) tooltipNextCollapse.textContent = nextCollapse;
-    if (tooltipNextCollapse2) tooltipNextCollapse2.textContent = 100;
-  }
-
-  if (tooltipMarbleProgress) {
-    const marblesInCurrentHundred = gameState.totalMarbles % 100;
-    const progress = (marblesInCurrentHundred / 100) * 100;
-    tooltipMarbleProgress.style.width = `${progress}%`;
-  }
-
-  // Always show marble count badge (tracks total marbles in both practice and active modes)
-  if (marbleCountBadge) {
-    marbleCountBadge.classList.remove("hidden");
-  }
-}
-
-// Update count display
-function updateCountDisplay() {
-  // Track previous level to detect level-ups
-  const previousLevel = gameState.currentLevel;
-  const newLevel = gameState.level;
-
-  // Update stored level
-  gameState.currentLevel = newLevel;
-
-  // Animate if level increased
-  const shouldAnimate = newLevel > previousLevel;
-  updateLevelDisplay(shouldAnimate);
-  updateMarbleCountDisplay();
-}
-
-// Reset streak and update best run if necessary
-function resetStreak() {
-  if (gameState.currentStreak > gameState.streakBestRun) {
-    gameState.streakBestRun = gameState.currentStreak;
-  }
-  gameState.currentStreak = 0;
-  updateStreakDisplay();
-}
-
-// Update level display
-function updateLevelDisplay(shouldAnimate = false) {
-  const levelNumber = document.getElementById("level-number");
-  const levelScoreProgress = document.getElementById("level-score-progress");
-  const levelProgressFill = document.getElementById("level-progress-bar-fill");
-  const levelDisplay = document.getElementById("level-display");
-
-  if (levelNumber) {
-    levelNumber.textContent = gameState.level;
-  }
-
-  // Calculate score progress for current level
-  const scoreForCurrentLevel = gameState.scoreForCurrentLevel;
-  const scoreForNextLevel = gameState.scoreForNextLevel;
-  const pointsInCurrentLevel = gameState.score - scoreForCurrentLevel;
-  const pointsNeededForNextLevel = scoreForNextLevel - scoreForCurrentLevel;
-
-  if (levelScoreProgress) {
-    levelScoreProgress.textContent = `${pointsInCurrentLevel}/${pointsNeededForNextLevel}`;
-  }
-
-  if (levelProgressFill) {
-    const progress = (pointsInCurrentLevel / pointsNeededForNextLevel) * 100;
-    levelProgressFill.style.width = `${progress}%`;
-  }
-
-  // Update tooltip values
-  const tooltipLevel = document.getElementById("tooltip-level");
-  const tooltipScore = document.getElementById("tooltip-score");
-  const tooltipScoreNeeded = document.getElementById("tooltip-score-needed");
-  const tooltipScoreNeeded2 = document.getElementById("tooltip-score-needed-2");
-  const tooltipLevelProgress = document.getElementById("tooltip-level-progress");
-
-  if (tooltipLevel) tooltipLevel.textContent = gameState.level;
-  if (tooltipScore) tooltipScore.textContent = pointsInCurrentLevel;
-  if (tooltipScoreNeeded) tooltipScoreNeeded.textContent = pointsNeededForNextLevel;
-  if (tooltipScoreNeeded2) tooltipScoreNeeded2.textContent = pointsNeededForNextLevel;
-  if (tooltipLevelProgress) {
-    const progress = (pointsInCurrentLevel / pointsNeededForNextLevel) * 100;
-    tooltipLevelProgress.style.width = `${progress}%`;
-  }
-
-  // Add bump animation when level increases
-  if (shouldAnimate && levelDisplay) {
-    levelDisplay.classList.add("bump");
-    setTimeout(() => {
-      levelDisplay.classList.remove("bump");
-    }, 300);
-  }
-
-  // Always show level display in active mode
-  if (levelDisplay) {
-    if (gameState.gamePhase === "active") {
-      levelDisplay.classList.remove("hidden");
-    } else {
-      levelDisplay.classList.add("hidden");
+    if (marbleCountNumber) {
+      marbleCountNumber.textContent = gameState.totalMarbles;
     }
-  }
-}
 
-// Update streak display
-function updateStreakDisplay(shouldAnimate = false) {
-  const streakNumber = document.getElementById("streak-number");
-  const streakTarget = document.getElementById("streak-target");
-  const streakProgressFill = document.getElementById("streak-progress-bar-fill");
-  const streakCounter = document.getElementById("streak-counter");
-
-  const nextRequirement = gameState.nextStreakRequirement;
-
-  if (streakNumber) {
-    streakNumber.textContent = gameState.currentStreak;
-  }
-
-  if (streakTarget) {
-    streakTarget.textContent = `/${nextRequirement}`;
-  }
-
-  if (streakProgressFill) {
-    const progress = Math.min((gameState.currentStreak / nextRequirement) * 100, 100);
-    streakProgressFill.style.width = `${progress}%`;
-  }
-
-  // Update tooltip values
-  const tooltipStreak = document.getElementById("tooltip-streak");
-  const tooltipStreakGoal = document.getElementById("tooltip-streak-goal");
-  const tooltipStreakGoal2 = document.getElementById("tooltip-streak-goal-2");
-  const tooltipStreakProgress = document.getElementById("tooltip-streak-progress");
-
-  if (tooltipStreak) tooltipStreak.textContent = gameState.currentStreak;
-  if (tooltipStreakGoal) tooltipStreakGoal.textContent = nextRequirement;
-  if (tooltipStreakGoal2) tooltipStreakGoal2.textContent = nextRequirement;
-  if (tooltipStreakProgress) {
-    const progress = Math.min((gameState.currentStreak / nextRequirement) * 100, 100);
-    tooltipStreakProgress.style.width = `${progress}%`;
-  }
-
-  // Add bump animation when streak increases
-  if (shouldAnimate && streakCounter && gameState.currentStreak > 0) {
-    streakCounter.classList.add("bump");
-    setTimeout(() => {
-      streakCounter.classList.remove("bump");
-    }, 500);
-  }
-
-  // Always show streak counter in active mode
-  if (streakCounter) {
-    if (gameState.gamePhase === "active") {
-      streakCounter.classList.remove("hidden");
-    } else {
-      streakCounter.classList.add("hidden");
+    if (marbleCountProgressFill) {
+      // Show progress to next hundred (0-100)
+      const marblesInCurrentHundred = gameState.totalMarbles % 100;
+      const progress = (marblesInCurrentHundred / 100) * 100;
+      marbleCountProgressFill.style.width = `${progress}%`;
     }
+
+    // Update tooltip values
+    const tooltipMarbleCount = document.getElementById("tooltip-marble-count");
+    const tooltipNextCollapse = document.getElementById("tooltip-next-collapse");
+    const tooltipNextCollapse2 = document.getElementById("tooltip-next-collapse-2");
+    const tooltipMarbleProgress = document.getElementById("tooltip-marble-progress");
+
+    if (tooltipMarbleCount) {
+      const marblesInCurrentHundred = gameState.totalMarbles % 100;
+      tooltipMarbleCount.textContent = marblesInCurrentHundred;
+    }
+
+    if (tooltipNextCollapse || tooltipNextCollapse2) {
+      const nextCollapse = Math.ceil((gameState.totalMarbles + 1) / 100) * 100;
+      if (tooltipNextCollapse) tooltipNextCollapse.textContent = nextCollapse;
+      if (tooltipNextCollapse2) tooltipNextCollapse2.textContent = 100;
+    }
+
+    if (tooltipMarbleProgress) {
+      const marblesInCurrentHundred = gameState.totalMarbles % 100;
+      const progress = (marblesInCurrentHundred / 100) * 100;
+      tooltipMarbleProgress.style.width = `${progress}%`;
+    }
+
+    // Always show marble count badge (tracks total marbles in both practice and active modes)
+    if (marbleCountBadge) {
+      marbleCountBadge.classList.remove("hidden");
+    }
+  },
+
+  updateLevel(animate = false) {
+    const levelNumber = document.getElementById("level-number");
+    const levelScoreProgress = document.getElementById("level-score-progress");
+    const levelProgressFill = document.getElementById("level-progress-bar-fill");
+    const levelDisplay = document.getElementById("level-display");
+
+    if (levelNumber) {
+      levelNumber.textContent = gameState.level;
+    }
+
+    // Calculate score progress for current level
+    const scoreForCurrentLevel = gameState.scoreForCurrentLevel;
+    const scoreForNextLevel = gameState.scoreForNextLevel;
+    const pointsInCurrentLevel = gameState.score - scoreForCurrentLevel;
+    const pointsNeededForNextLevel = scoreForNextLevel - scoreForCurrentLevel;
+
+    if (levelScoreProgress) {
+      levelScoreProgress.textContent = `${pointsInCurrentLevel}/${pointsNeededForNextLevel}`;
+    }
+
+    if (levelProgressFill) {
+      const progress = (pointsInCurrentLevel / pointsNeededForNextLevel) * 100;
+      levelProgressFill.style.width = `${progress}%`;
+    }
+
+    // Update tooltip values
+    const tooltipLevel = document.getElementById("tooltip-level");
+    const tooltipScore = document.getElementById("tooltip-score");
+    const tooltipScoreNeeded = document.getElementById("tooltip-score-needed");
+    const tooltipScoreNeeded2 = document.getElementById("tooltip-score-needed-2");
+    const tooltipLevelProgress = document.getElementById("tooltip-level-progress");
+
+    if (tooltipLevel) tooltipLevel.textContent = gameState.level;
+    if (tooltipScore) tooltipScore.textContent = pointsInCurrentLevel;
+    if (tooltipScoreNeeded) tooltipScoreNeeded.textContent = pointsNeededForNextLevel;
+    if (tooltipScoreNeeded2) tooltipScoreNeeded2.textContent = pointsNeededForNextLevel;
+    if (tooltipLevelProgress) {
+      const progress = (pointsInCurrentLevel / pointsNeededForNextLevel) * 100;
+      tooltipLevelProgress.style.width = `${progress}%`;
+    }
+
+    // Add bump animation when level increases
+    if (animate && levelDisplay) {
+      levelDisplay.classList.add("bump");
+      setTimeout(() => {
+        levelDisplay.classList.remove("bump");
+      }, 300);
+    }
+
+    // Always show level display in active mode
+    if (levelDisplay) {
+      if (gameState.gamePhase === "active") {
+        levelDisplay.classList.remove("hidden");
+      } else {
+        levelDisplay.classList.add("hidden");
+      }
+    }
+  },
+
+  updateStreak(animate = false) {
+    const streakNumber = document.getElementById("streak-number");
+    const streakTarget = document.getElementById("streak-target");
+    const streakProgressFill = document.getElementById("streak-progress-bar-fill");
+    const streakCounter = document.getElementById("streak-counter");
+
+    const nextRequirement = gameState.nextStreakRequirement;
+
+    if (streakNumber) {
+      streakNumber.textContent = gameState.currentStreak;
+    }
+
+    if (streakTarget) {
+      streakTarget.textContent = `/${nextRequirement}`;
+    }
+
+    if (streakProgressFill) {
+      const progress = Math.min((gameState.currentStreak / nextRequirement) * 100, 100);
+      streakProgressFill.style.width = `${progress}%`;
+    }
+
+    // Update tooltip values
+    const tooltipStreak = document.getElementById("tooltip-streak");
+    const tooltipStreakGoal = document.getElementById("tooltip-streak-goal");
+    const tooltipStreakGoal2 = document.getElementById("tooltip-streak-goal-2");
+    const tooltipStreakProgress = document.getElementById("tooltip-streak-progress");
+
+    if (tooltipStreak) tooltipStreak.textContent = gameState.currentStreak;
+    if (tooltipStreakGoal) tooltipStreakGoal.textContent = nextRequirement;
+    if (tooltipStreakGoal2) tooltipStreakGoal2.textContent = nextRequirement;
+    if (tooltipStreakProgress) {
+      const progress = Math.min((gameState.currentStreak / nextRequirement) * 100, 100);
+      tooltipStreakProgress.style.width = `${progress}%`;
+    }
+
+    // Add bump animation when streak increases
+    if (animate && streakCounter && gameState.currentStreak > 0) {
+      streakCounter.classList.add("bump");
+      setTimeout(() => {
+        streakCounter.classList.remove("bump");
+      }, 500);
+    }
+
+    // Always show streak counter in active mode
+    if (streakCounter) {
+      if (gameState.gamePhase === "active") {
+        streakCounter.classList.remove("hidden");
+      } else {
+        streakCounter.classList.add("hidden");
+      }
+    }
+  },
+
+  // Update all displays at once
+  updateAll() {
+    this.updateMarbles();
+    this.updateStreak();
+    this.updateLevel();
   }
-}
+};
 
 // Grid no longer scrolls - rows naturally disappear at top when overflow occurs
 
@@ -260,16 +286,17 @@ function initGame() {
   }
 
   gameState.rows = [];
-  gameState.totalMarbles = 0;
   gameState.currentRowIndex = 0;
   gameState.gameMode = "drag";
   gameState.gamePhase = "practice";
   gameState.currentTargetNumber = 0;
-  gameState.currentStreak = 0;
-  gameState.streakBestRun = 0;
-  gameState.miniGamesUnlocked = 0;
   gameState.milestonesShown = [];
-  gameState.score = 0;
+
+  // Reset all counters
+  counters.resetMarbles();
+  counters.resetStreak();
+  counters.resetScore();
+  counters.resetMiniGames();
 
   // Initialize "Start Challenge" button
   const modeToggleBtn = document.getElementById("mode-toggle-btn");
@@ -280,8 +307,7 @@ function initGame() {
 
   // Update displays
   updateModeUI();
-  updateStreakDisplay();
-  updateLevelDisplay();
+  display.updateAll();
 
   addRow();
   createMarblesInGroup();
@@ -326,9 +352,6 @@ document.addEventListener("DOMContentLoaded", () => {
 export {
   gameState,
   baseColors,
-  updateCountDisplay,
-  resetStreak,
-  updateStreakDisplay,
-  updateLevelDisplay,
-  updateMarbleCountDisplay,
+  counters,
+  display,
 };

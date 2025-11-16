@@ -1,10 +1,7 @@
 import {
   gameState,
-  updateCountDisplay,
-  resetStreak,
-  updateStreakDisplay,
-  updateLevelDisplay,
-  updateMarbleCountDisplay,
+  counters,
+  display,
 } from "./main.js";
 
 import {
@@ -79,12 +76,12 @@ function placeMarbleGroupInGrid(directCount = null) {
     const newMarble = document.createElement("div");
     newMarble.className = "marble";
 
-    gameState.totalMarbles++;
     // Track marbles placed in active mode for level calculation
     // Multiply by current streak (minimum 1x)
+    counters.incrementMarbles();
     if (gameState.gamePhase === "active") {
       const streakMultiplier = Math.max(1, gameState.currentStreak);
-      gameState.score += streakMultiplier;
+      counters.addScore(streakMultiplier);
     }
     newMarble.textContent = gameState.totalMarbles;
 
@@ -132,8 +129,14 @@ function placeMarbleGroupInGrid(directCount = null) {
     createMarblesInGroup();
   }
 
-  // Update the count display
-  updateCountDisplay();
+  // Update displays - check if level changed for animation
+  const previousLevel = gameState.currentLevel;
+  const newLevel = gameState.level;
+  gameState.currentLevel = newLevel;
+  const leveledUp = newLevel > previousLevel;
+
+  display.updateMarbles();
+  display.updateLevel(leveledUp);
 
   // Ensure there's always an empty row at the bottom
   ensureEmptyRowBelowLastRow();
@@ -1355,12 +1358,12 @@ function fillDrawnBoxes(boxes, isCorrect) {
         const newMarble = document.createElement("div");
         newMarble.className = "marble";
 
-        gameState.totalMarbles++;
         // Track marbles placed in active mode for level calculation
         // Multiply by current streak (minimum 1x)
+        counters.incrementMarbles();
         if (gameState.gamePhase === "active") {
           const streakMultiplier = Math.max(1, gameState.currentStreak);
-          gameState.score += streakMultiplier;
+          counters.addScore(streakMultiplier);
         }
         newMarble.textContent = gameState.totalMarbles;
 
@@ -1384,8 +1387,14 @@ function fillDrawnBoxes(boxes, isCorrect) {
         checkForCollapses();
       });
 
-      // Update count display
-      updateCountDisplay();
+      // Update displays - check if level changed for animation
+      const previousLevel = gameState.currentLevel;
+      const newLevel = gameState.level;
+      gameState.currentLevel = newLevel;
+      const leveledUp = newLevel > previousLevel;
+
+      display.updateMarbles();
+      display.updateLevel(leveledUp);
 
       // Check if we need to add a new row FIRST
       ensureEmptyRowAvailable();
@@ -1423,8 +1432,8 @@ function fillDrawnBoxes(boxes, isCorrect) {
         // Only increment streak if we haven't reached the requirement yet
         // This prevents going from 10/10 to 11/10, 12/10, etc.
         if (gameState.currentStreak < gameState.nextStreakRequirement) {
-          gameState.currentStreak++;
-          updateStreakDisplay(true); // Animate on increase
+          counters.incrementStreak();
+          display.updateStreak(true); // Animate on increase
 
           // Check if we've just reached the requirement
           if (gameState.currentStreak >= gameState.nextStreakRequirement) {
@@ -1438,8 +1447,9 @@ function fillDrawnBoxes(boxes, isCorrect) {
 
             setTimeout(() => {
               showMiniGame();
-              gameState.miniGamesUnlocked++;
-              resetStreak();
+              counters.incrementMiniGames();
+              counters.resetStreak();
+              display.updateStreak();
             }, 500);
           }
         }
@@ -1470,7 +1480,8 @@ function fillDrawnBoxes(boxes, isCorrect) {
 
     // Reset streak on wrong answer (only in active game phase)
     if (gameState.gamePhase === "active" && gameState.currentStreak > 0) {
-      resetStreak();
+      counters.resetStreak();
+      display.updateStreak();
     }
   }
 }
@@ -1668,9 +1679,7 @@ function startChallenge() {
   generateTargetNumber();
 
   // Activate all stat badges immediately
-  updateLevelDisplay();
-  updateMarbleCountDisplay();
-  updateStreakDisplay();
+  display.updateAll();
 }
 
 // Update UI based on current mode
