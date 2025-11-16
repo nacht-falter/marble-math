@@ -21,8 +21,8 @@
 - [x] Increase difficulty in draw mode by increasing number size.
 - [ ] New "target" game mode, where the player has to click on the correct box instead of drawing the correct amount of marbles. This is an advanced mode, since it lacks the visual feedback.
 - [x] Update instructions.
-- [ ] Balance streak multipliers?
-- [ ] Introduce some losing condition for game over
+- [ ] Balance streak multipliers, adjust streak system (5 correct answers to trigger mini game, no scaling).
+- [ ] Introduce some losing condition for game over (e.g. count mistakes, introduce lives, lives could be regained on milestones or with mini games).
 
 # Bugfixes
 - [x] Fix messed up grid after 200 collapse appears
@@ -37,3 +37,6 @@
 - [x] Unify collapse logic for drag and draw modes to prevent future bugs.
 - [x] Fix collapse box width for medium screens.
 - [x] Fix width for marble group on medium screen sizes
+- [ ] Marble count is not being reset on reset game
+- [ ] Instructions are not fully visible on mobile.
+
