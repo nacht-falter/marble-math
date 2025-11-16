@@ -14,6 +14,8 @@
 - [x] Update color scheme for marbles placed in grid to look more cohesive.
 - [x] Add custom tooltips to badges at the top with detailed information.
 - [ ] Improve mini game layout and styles.
+- [ ] Show mode indicator in top left corner underneath the level badge.
+- [ ] Once lives are implemented hearts underneath the streak badge (lost hearts are transparent).
 
 ## Gameplay
 - [x] Add score system with streaks which build up until a minigame pops up.

@@ -3,6 +3,7 @@ import {
   createMarblesInGroup,
   setupDragHandlers,
   setupDrawModeHandlers,
+  setupTargetModeHandlers,
   startChallenge,
   updateModeUI,
 } from "./modes.js";
@@ -12,7 +13,7 @@ const gameState = {
   rows: [],
   totalMarbles: 0,
   currentRowIndex: 0,
-  gameMode: "drag", // 'drag' or 'draw'
+  gameMode: "drag", // 'drag', 'draw', or 'target'
   currentTargetNumber: 0,
   gamePhase: "practice", // 'practice' or 'active'
   currentStreak: 0,
@@ -318,6 +319,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initGame();
   setupDragHandlers();
   setupDrawModeHandlers();
+  setupTargetModeHandlers();
 
   // Setup reset button
   const resetBtn = document.getElementById("reset-btn");

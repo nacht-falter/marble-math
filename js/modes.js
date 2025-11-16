@@ -135,6 +135,12 @@ function placeMarbleGroupInGrid(directCount = null) {
   gameState.currentLevel = newLevel;
   const leveledUp = newLevel > previousLevel;
 
+  // Check if we've reached Level 5 and should switch to target mode
+  if (leveledUp && newLevel === 5 && gameState.gameMode === "draw") {
+    gameState.gameMode = "target";
+    updateModeUI();
+  }
+
   display.updateMarbles();
   display.updateLevel(leveledUp);
 
@@ -688,16 +694,14 @@ function setupDrawModeHandlers() {
       // Correct! Convert ghost marbles to real marbles
       fillDrawnBoxes(drawnBoxes, true);
     } else {
+      // Clear ghost marbles for incorrect answers
+      drawnBoxes.forEach((box) => {
+        const ghost = box.querySelector('.ghost-marble');
+        if (ghost) ghost.remove();
+      });
       // Incorrect! Show error and clear
       fillDrawnBoxes(drawnBoxes, false);
-    }
-
-    // Clear all ghost marbles
-    clearAllGhostMarbles();
-
-    // For ERROR case only: remove unnecessary empty rows after clearing ghosts
-    // For success case, fillDrawnBoxes will handle cleanup after placing marbles
-    if (!isCorrect) {
+      // For ERROR case: remove unnecessary empty rows
       removeUnnecessaryEmptyRows();
     }
 
@@ -713,6 +717,88 @@ function setupDrawModeHandlers() {
   document.addEventListener("touchend", () => {
     endDrawing();
   });
+}
+
+// Setup target mode click handlers
+function setupTargetModeHandlers() {
+  const gridContainer = document.getElementById("grid-container");
+
+  // Helper function to handle box click
+  function handleBoxClick(box) {
+    if (gameState.gameMode !== "target") return;
+    if (!box) return;
+
+    // Get the first empty box
+    const firstEmptyBox = getFirstEmptyBox();
+    if (!firstEmptyBox) return;
+
+    // Calculate how many marbles to place
+    const targetCount = gameState.currentTargetNumber;
+
+    // Get all empty boxes in order
+    const allEmptyBoxes = [];
+    gameState.rows.forEach((row) => {
+      if (!row.isCollapsed && row.boxes) {
+        row.boxes.forEach((b) => {
+          if (!b.hasChildNodes()) {
+            allEmptyBoxes.push(b);
+          }
+        });
+      }
+    });
+
+    // Find the index of the clicked box
+    const clickedIndex = allEmptyBoxes.indexOf(box);
+    if (clickedIndex === -1) return; // Clicked box is not empty
+
+    // The target count should land exactly on the clicked box
+    // So we need to place targetCount marbles starting from the first empty box
+    // and the last marble should land on the clicked box
+    // This means: clickedIndex should equal targetCount - 1
+    const isCorrect = (clickedIndex === targetCount - 1);
+
+    // Get the boxes that will be filled
+    const boxesToFill = allEmptyBoxes.slice(0, targetCount);
+
+    if (isCorrect) {
+      // Correct answer! Show ghost marbles first
+      boxesToFill.forEach((b) => addGhostMarble(b));
+
+      // Fill the boxes after a brief delay (ghost marbles will be cleared by fillDrawnBoxes)
+      setTimeout(() => {
+        fillDrawnBoxes(boxesToFill, true);
+      }, 150);
+    } else {
+      // Incorrect answer - show error feedback
+      box.classList.add("draw-incorrect");
+      setTimeout(() => {
+        box.classList.remove("draw-incorrect");
+      }, 500);
+
+      // Reset streak on wrong answer
+      if (gameState.gamePhase === "active" && gameState.currentStreak > 0) {
+        counters.resetStreak();
+        display.updateStreak();
+      }
+    }
+  }
+
+  // Mouse click handler
+  gridContainer.addEventListener("click", (e) => {
+    const box = e.target.closest(".box");
+    handleBoxClick(box);
+  });
+
+  // Touch handler
+  gridContainer.addEventListener("touchend", (e) => {
+    if (e.changedTouches.length === 1) {
+      const touch = e.changedTouches[0];
+      const element = document.elementFromPoint(touch.clientX, touch.clientY);
+      const box = element?.closest(".box");
+      handleBoxClick(box);
+      e.preventDefault();
+    }
+  }, { passive: false });
 }
 
 // Add a ghost marble to a box
@@ -1039,6 +1125,10 @@ function createMiniGrid(currentCap) {
   // Clear existing grid
   container.innerHTML = "";
 
+  // Update container class based on game mode for cursor styling
+  container.classList.remove("draw-mode", "target-mode");
+  container.classList.add(gameState.gameMode === "target" ? "target-mode" : "draw-mode");
+
   // Calculate number of rows needed for this level's cap (each row has 10 boxes)
   const rowsNeeded = Math.ceil(currentCap / 10);
 
@@ -1062,8 +1152,12 @@ function createMiniGrid(currentCap) {
     container.appendChild(row);
   }
 
-  // Setup drawing handlers for mini-grid
-  setupMiniGridDrawing();
+  // Setup handlers for mini-grid based on current game mode
+  if (gameState.gameMode === "target") {
+    setupMiniGridTargetMode();
+  } else {
+    setupMiniGridDrawing();
+  }
 }
 
 // Setup drawing mechanism for mini-grid (reusing main grid logic)
@@ -1188,101 +1282,188 @@ function setupMiniGridDrawing() {
   }, { passive: false });
 }
 
+// Setup target mode mechanism for mini-grid
+function setupMiniGridTargetMode() {
+  const container = document.getElementById("mini-grid-container");
+  if (!container) return;
+
+  // Get all mini boxes in order
+  function getAllMiniBoxes() {
+    const rows = Array.from(container.querySelectorAll(".mini-row"));
+    return rows.flatMap(row => Array.from(row.querySelectorAll(".box")));
+  }
+
+  // Get the correct answer from modal
+  const modal = document.getElementById("mini-game-modal");
+  const targetCount = parseInt(modal?.dataset.correctAnswer || 0);
+
+  function handleBoxClick(box) {
+    if (!box) return;
+
+    const allBoxes = getAllMiniBoxes();
+
+    // Get all empty boxes
+    const allEmptyBoxes = allBoxes.filter(b => !b.hasChildNodes());
+
+    // Find the index of the clicked box in empty boxes
+    const clickedIndex = allEmptyBoxes.indexOf(box);
+    if (clickedIndex === -1) return; // Clicked box is not empty
+
+    // Check if this is the correct box (where the targetCount-th marble lands)
+    const isCorrect = (clickedIndex === targetCount - 1);
+
+    // Get the boxes that will be filled
+    const boxesToFill = allEmptyBoxes.slice(0, targetCount);
+
+    if (isCorrect) {
+      // Show ghost marbles
+      boxesToFill.forEach((b) => addGhostMarble(b));
+
+      // Validate after brief delay, passing the boxes for target mode
+      setTimeout(() => {
+        validateMiniGameAnswer(boxesToFill);
+      }, 150);
+    } else {
+      // Incorrect - show error feedback on clicked box
+      box.classList.add("draw-incorrect");
+      setTimeout(() => {
+        box.classList.remove("draw-incorrect");
+      }, 500);
+    }
+  }
+
+  // Mouse click handler
+  container.addEventListener("click", (e) => {
+    const box = e.target.closest(".box");
+    handleBoxClick(box);
+  });
+
+  // Touch handler
+  container.addEventListener("touchend", (e) => {
+    if (e.changedTouches.length === 1) {
+      const touch = e.changedTouches[0];
+      const element = document.elementFromPoint(touch.clientX, touch.clientY);
+      const box = element?.closest(".box");
+      handleBoxClick(box);
+      e.preventDefault();
+    }
+  }, { passive: false });
+}
+
 // Validate the mini-game answer
-function validateMiniGameAnswer() {
+function validateMiniGameAnswer(boxesFromTargetMode = null) {
   const modal = document.getElementById("mini-game-modal");
   const container = document.getElementById("mini-grid-container");
   if (!modal || !container) return;
 
   const correctAnswer = parseInt(modal.dataset.correctAnswer);
-  const ghostMarbles = container.querySelectorAll(".ghost-marble");
-  const userAnswer = ghostMarbles.length;
 
-  // Get the boxes with ghost marbles
-  const drawnBoxes = Array.from(ghostMarbles).map(ghost => ghost.parentElement);
+  let drawnBoxes;
+  let userAnswer;
 
-  // Clear ghost marbles
-  clearAllGhostMarbles();
+  if (boxesFromTargetMode) {
+    // Target mode: boxes are passed directly
+    drawnBoxes = boxesFromTargetMode;
+    userAnswer = drawnBoxes.length;
+  } else {
+    // Draw mode: count ghost marbles
+    const ghostMarbles = container.querySelectorAll(".ghost-marble");
+    userAnswer = ghostMarbles.length;
+    drawnBoxes = Array.from(ghostMarbles).map(ghost => ghost.parentElement);
+  }
 
   const isCorrect = userAnswer === correctAnswer;
 
   const modalContent = modal.querySelector(".mini-game-content");
 
   if (isCorrect) {
-    // Show success feedback (green boxes) and place actual marbles
+    // Show success feedback (green boxes with ghost marbles still visible)
     drawnBoxes.forEach((box) => {
       box.classList.add("draw-correct");
-
-      // Create and add a real marble to this box
-      const marble = document.createElement("div");
-      marble.className = "marble";
-      box.appendChild(marble);
     });
 
     if (modalContent) {
       modalContent.classList.add("shine");
     }
 
+    // After brief delay, clear ghost marbles and place real marbles
     setTimeout(() => {
-      const firstEmptyBox = getFirstEmptyBox();
+      drawnBoxes.forEach((box) => {
+        // Clear ghost marble
+        const ghost = box.querySelector('.ghost-marble');
+        if (ghost) ghost.remove();
 
-      if (firstEmptyBox && modalContent) {
-        const modalRect = modalContent.getBoundingClientRect();
-        const targetRect = firstEmptyBox.box.getBoundingClientRect();
+        // Remove green feedback
+        box.classList.remove("draw-correct");
 
-        const deltaX = targetRect.left + (targetRect.width / 2) - (modalRect.left + modalRect.width / 2);
-        const deltaY = targetRect.top + (targetRect.height / 2) - (modalRect.top + modalRect.height / 2);
+        // Create and add a real marble to this box
+        const marble = document.createElement("div");
+        marble.className = "marble";
+        box.appendChild(marble);
+      });
 
-        modalContent.style.setProperty('--collapse-x', `${deltaX}px`);
-        modalContent.style.setProperty('--collapse-y', `${deltaY}px`);
-        modalContent.classList.add("collapse-to-target");
-      }
-
-      const modalBackground = modal.querySelector(".modal-background");
-      if (modalBackground) {
-        modalBackground.classList.add("fade-out");
-      }
-
+      // Start collapse animation after brief delay
       setTimeout(() => {
-        if (modalContent) {
-          modalContent.classList.remove("collapse-to-target");
-          modalContent.classList.remove("shine");
-          modalContent.style.transform = "";
-          modalContent.style.opacity = "";
-          modalContent.style.removeProperty('--collapse-x');
-          modalContent.style.removeProperty('--collapse-y');
+        const firstEmptyBox = getFirstEmptyBox();
+
+        if (firstEmptyBox && modalContent) {
+          const modalRect = modalContent.getBoundingClientRect();
+          const targetRect = firstEmptyBox.box.getBoundingClientRect();
+
+          const deltaX = targetRect.left + (targetRect.width / 2) - (modalRect.left + modalRect.width / 2);
+          const deltaY = targetRect.top + (targetRect.height / 2) - (modalRect.top + modalRect.height / 2);
+
+          modalContent.style.setProperty('--collapse-x', `${deltaX}px`);
+          modalContent.style.setProperty('--collapse-y', `${deltaY}px`);
+          modalContent.classList.add("collapse-to-target");
         }
+
         const modalBackground = modal.querySelector(".modal-background");
         if (modalBackground) {
-          modalBackground.classList.remove("fade-out");
-        }
-
-        modal.style.display = "none";
-        container.innerHTML = "";
-
-        // Re-enable target display container and generate new target
-        const targetContainer = document.querySelector(".target-number-container");
-        if (targetContainer) {
-          targetContainer.classList.remove("disabled-for-minigame");
-        }
-
-        // Generate new target number after mini game closes
-        generateTargetNumber();
-
-        // Update target-box highlight for next empty box
-        document.querySelectorAll(".box.target-box").forEach((box) => {
-          box.classList.remove("target-box");
-        });
-        const firstEmptyBox = getFirstEmptyBox();
-        if (firstEmptyBox) {
-          firstEmptyBox.box.classList.add("target-box");
+          modalBackground.classList.add("fade-out");
         }
 
         setTimeout(() => {
-          placeMarbleGroupInGrid(correctAnswer);
-        }, 100);
-      }, 600);
-    }, 400);
+          if (modalContent) {
+            modalContent.classList.remove("collapse-to-target");
+            modalContent.classList.remove("shine");
+            modalContent.style.transform = "";
+            modalContent.style.opacity = "";
+            modalContent.style.removeProperty('--collapse-x');
+            modalContent.style.removeProperty('--collapse-y');
+          }
+          const modalBackground = modal.querySelector(".modal-background");
+          if (modalBackground) {
+            modalBackground.classList.remove("fade-out");
+          }
+
+          modal.style.display = "none";
+          container.innerHTML = "";
+
+          // Re-enable target display container and generate new target
+          const targetContainer = document.querySelector(".target-number-container");
+          if (targetContainer) {
+            targetContainer.classList.remove("disabled-for-minigame");
+          }
+
+          // Generate new target number after mini game closes
+          generateTargetNumber();
+
+          // Update target-box highlight for next empty box
+          document.querySelectorAll(".box.target-box").forEach((box) => {
+            box.classList.remove("target-box");
+          });
+          const firstEmptyBox = getFirstEmptyBox();
+          if (firstEmptyBox) {
+            firstEmptyBox.box.classList.add("target-box");
+          }
+
+          setTimeout(() => {
+            placeMarbleGroupInGrid(correctAnswer);
+          }, 100);
+        }, 600);
+      }, 100);
+    }, 300);
   } else {
     // Show error feedback (red boxes)
     drawnBoxes.forEach((box) => box.classList.add("draw-incorrect"));
@@ -1346,14 +1527,22 @@ function validateMiniGameAnswer() {
 // Fill drawn boxes with marbles and validate
 function fillDrawnBoxes(boxes, isCorrect) {
   if (isCorrect) {
-    // Show success feedback
+    // Show success feedback (green boxes with ghost marbles still visible)
     boxes.forEach((box) => box.classList.add("draw-correct"));
 
-    // Add marbles after brief delay
+    // After brief delay, clear ghost marbles and add real marbles
     setTimeout(() => {
+      // Clear ghost marbles
       boxes.forEach((box) => {
-        box.classList.remove("draw-correct");
+        const ghost = box.querySelector('.ghost-marble');
+        if (ghost) ghost.remove();
+      });
 
+      // Remove green feedback
+      boxes.forEach((box) => box.classList.remove("draw-correct"));
+
+      // Add real marbles
+      boxes.forEach((box) => {
         // Create marble
         const newMarble = document.createElement("div");
         newMarble.className = "marble";
@@ -1392,6 +1581,12 @@ function fillDrawnBoxes(boxes, isCorrect) {
       const newLevel = gameState.level;
       gameState.currentLevel = newLevel;
       const leveledUp = newLevel > previousLevel;
+
+      // Check if we've reached Level 5 and should switch to target mode
+      if (leveledUp && newLevel === 2 && gameState.gameMode === "draw") {
+        gameState.gameMode = "target";
+        updateModeUI();
+      }
 
       display.updateMarbles();
       display.updateLevel(leveledUp);
@@ -1693,14 +1888,25 @@ function updateModeUI() {
   const targetDisplay = document.getElementById("target-number-display");
   const targetNumber = document.getElementById("target-number");
   const modeControls = document.querySelector(".mode-controls");
+  const gridContainer = document.getElementById("grid-container");
 
   // Remove target-box from all boxes first
   document.querySelectorAll(".box.target-box").forEach((box) => {
     box.classList.remove("target-box");
   });
 
-  if (gameState.gameMode === "draw") {
-    // Draw mode (active phase)
+  // Update cursor style based on mode
+  if (gridContainer) {
+    gridContainer.classList.remove("draw-mode", "target-mode");
+    if (gameState.gameMode === "draw") {
+      gridContainer.classList.add("draw-mode");
+    } else if (gameState.gameMode === "target") {
+      gridContainer.classList.add("target-mode");
+    }
+  }
+
+  if (gameState.gameMode === "draw" || gameState.gameMode === "target") {
+    // Draw or Target mode (active phase)
     // Hide marble group container
     if (marbleGroupContainer) marbleGroupContainer.style.display = "none";
 
@@ -1713,10 +1919,12 @@ function updateModeUI() {
     // Hide challenge button with transition (can't go back to drag mode)
     if (modeControls) modeControls.classList.add("hidden");
 
-    // Highlight the first empty box
-    const firstEmptyBox = getFirstEmptyBox();
-    if (firstEmptyBox) {
-      firstEmptyBox.box.classList.add("target-box");
+    // Highlight the first empty box (only in draw mode, not target)
+    if (gameState.gameMode === "draw") {
+      const firstEmptyBox = getFirstEmptyBox();
+      if (firstEmptyBox) {
+        firstEmptyBox.box.classList.add("target-box");
+      }
     }
   } else {
     // Drag mode (practice phase)
@@ -1744,6 +1952,7 @@ export {
   createMarblesInGroup,
   setupDragHandlers,
   setupDrawModeHandlers,
+  setupTargetModeHandlers,
   updateModeUI,
   startChallenge,
   showMiniGame,

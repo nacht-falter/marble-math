@@ -229,6 +229,16 @@ body {
   -ms-user-select: none;
 }
 
+/* Draw mode - pointer cursor for drawing */
+.grid-container.draw-mode .box:not(:has(.marble)) {
+  cursor: pointer;
+}
+
+/* Target mode - crosshair cursor for aiming/targeting */
+.grid-container.target-mode .box:not(:has(.marble)) {
+  cursor: crosshair;
+}
+
 .grid-container::before {
   content: '';
   position: absolute;
@@ -1558,8 +1568,16 @@ button:hover {
   border: 2px solid var(--primary-blue-dark);
   border-radius: 6px;
   background: white;
-  cursor: crosshair;
   transition: all 0.15s ease;
+}
+
+/* Mini-grid cursor modes */
+.mini-grid-container.draw-mode .mini-box:not(.filled) {
+  cursor: pointer;
+}
+
+.mini-grid-container.target-mode .mini-box:not(.filled) {
+  cursor: crosshair;
 }
 
 .mini-box.filled {
