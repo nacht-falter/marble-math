@@ -1624,11 +1624,6 @@ function removeUnnecessaryEmptyRows() {
 
 // Ensure there are enough empty rows to accommodate the current max target number
 function ensureEmptyRowBelowLastRow() {
-  // Only applies to draw mode
-  if (gameState.gameMode !== "draw") {
-    return;
-  }
-
   // Get all regular (non-collapsed) rows
   const regularRows = gameState.rows.filter((row) => !row.isCollapsed);
 
@@ -1638,14 +1633,23 @@ function ensureEmptyRowBelowLastRow() {
     totalEmptyBoxes += row.boxes.filter(b => !b.hasChildNodes()).length;
   });
 
-  // Calculate max possible target for current level (same logic as generateTargetNumber)
-  const level = gameState.level;
-  const maxTargetForLevel = Math.min(9 + level, 30);
+  if (gameState.gameMode === "draw") {
+    // In draw mode, ensure enough empty boxes for the max target
+    // Calculate max possible target for current level (same logic as generateTargetNumber)
+    const level = gameState.level;
+    const maxTargetForLevel = Math.min(9 + level, 30);
 
-  // Add rows until we have enough empty boxes for the max target
-  while (totalEmptyBoxes < maxTargetForLevel) {
-    addRow();
-    totalEmptyBoxes += 10; // Each new row adds 10 empty boxes
+    // Add rows until we have enough empty boxes for the max target
+    while (totalEmptyBoxes < maxTargetForLevel) {
+      addRow();
+      totalEmptyBoxes += 10; // Each new row adds 10 empty boxes
+    }
+  } else {
+    // In drag mode, ensure at least one empty row exists for split visualization
+    // This is needed so the second split indicator has a row to position at
+    if (totalEmptyBoxes < 10) {
+      addRow();
+    }
   }
 }
 
