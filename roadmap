@@ -36,3 +36,4 @@
 - [x] Fix row collapse bug in drag mode (again!)
 - [x] Unify collapse logic for drag and draw modes to prevent future bugs.
 - [x] Fix collapse box width for medium screens.
+- [x] Fix width for marble group on medium screen sizes

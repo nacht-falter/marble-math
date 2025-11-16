@@ -186,18 +186,29 @@ body {
   align-items: center;
   justify-content: center;
   gap: 15px;
+  background-color: var(--marble-count-bg);
+  padding: 10px 20px;
+  margin: 15px 0 3px 0;
+  border-radius: 5px;
+  border: 2px solid var(--primary-blue-light);
+  box-sizing: border-box;
+}
+
+.target-plus {
+  font-size: 6vw;
+  font-weight: bold;
+  color: var(--primary-blue-light);
 }
 
 .target-number {
-  font-size: 32px;
+  font-size: 6vw;
   font-weight: bold;
   color: var(--primary-blue-light);
 }
 
 .target-number-display .marble-icon {
-  width: 40px;
-  height: 40px;
-  font-size: 14px;
+  width: 7vw;
+  height: 7vw;
 }
 
 .grid-container {
@@ -704,8 +715,9 @@ button:hover {
     min-width: 100px;
   }
 
+  /* Fix horizontal overflow - reduce marble group gap to match grid spacing */
   .marble-group {
-    gap: calc(2vw + 2px);
+    gap: 11px; /* Matches visual gap between marbles in grid (box gap 1px + marble padding 10px) */
   }
 
   /* Fix horizontal overflow - reduce box size */
@@ -717,7 +729,20 @@ button:hover {
   .marble {
     width: calc(7.5vw - 10px);
     height: calc(7.5vw - 10px);
-    font-size: 12px;
+    font-size: 2.5vw;
+  }
+
+  .target-number-display .marble-icon {
+    width: calc(7.5vw - 10px);
+    height: calc(7.5vw - 10px);
+  }
+
+  .target-plus {
+    font-size: 6vw;
+  }
+
+  .target-number {
+    font-size: 6vw;
   }
 
   .row {
@@ -816,6 +841,19 @@ button:hover {
     width: 40px;
     height: 40px;
     font-size: 14px;
+  }
+
+  .target-number-display .marble-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .target-plus {
+    font-size: 34px;
+  }
+
+  .target-number {
+    font-size: 34px;
   }
 
   .grid-container {
