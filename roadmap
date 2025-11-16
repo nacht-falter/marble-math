@@ -21,10 +21,11 @@
 - [x] Add score system with streaks which build up until a minigame pops up.
 - [x] Mini-Games: Every once in a while a mini game pops up after a task is completed. The player has to solve a math task (addition, substraction, multiplication, division) by drawing the correct amount of marbles in a smaller grid inside the mini game popup. If solved correctly, the popup window is closed and the marbles are added to the main grid.
 - [x] Increase difficulty in draw mode by increasing number size.
-- [ ] New "target" game mode, where the player has to click on the correct box instead of drawing the correct amount of marbles. This is an advanced mode, since it lacks the visual feedback.
+- [x] New "target" game mode, where the player has to click on the correct box instead of drawing the correct amount of marbles. This is an advanced mode, since it lacks the visual feedback.
 - [x] Update instructions.
 - [ ] Balance streak multipliers, adjust streak system (5 correct answers to trigger mini game, no scaling).
 - [ ] Introduce some losing condition for game over (e.g. count mistakes, introduce lives, lives could be regained on milestones or with mini games).
+- [ ] Update draw mode so that user clicks on the first box and then on the target box. Similar to target mode but ghost marbles will be shown.
 
 # Bugfixes
 - [x] Fix messed up grid after 200 collapse appears
