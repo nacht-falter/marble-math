@@ -12,8 +12,7 @@
 - [x] Show current level at the top
 - [x] Show current score at the top
 - [ ] Update color scheme for marbles placed in grid to look more cohesive.
-- [ ] Add title attributes to badges at the top.
-- [ ] Replace text on reset and instructions buttons with icons, add title attributes.
+- [x] Add custom tooltips to badges at the top with detailed information.
 
 ## Gameplay
 - [x] Add score system with streaks which build up until a minigame pops up.
@@ -31,3 +30,4 @@
 - [x] Hide target display on mini game trigger before the next target is shown.
 - [x] Fix bug where collapseToHundred was removing all regular rows instead of just the 10 rows being collapsed.
 - [x] Layout bug for screen size around 486 to approx. 781 px: Grid rows not fully visible (reduced box size from 9vw to 7.5vw for tablet screens).
+- [ ] Fix broken split logic in drag mode.
