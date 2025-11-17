@@ -42,4 +42,4 @@
 - [x] Fix width for marble group on medium screen sizes
 - [x] Marble count is not being reset on reset game
 - [x] Instructions are not fully visible on mobile.
-
+- [ ] target-box class is not being updated after minigame
