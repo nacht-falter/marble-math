@@ -25,7 +25,7 @@
 - [x] Update instructions.
 - [ ] Balance streak multipliers, adjust streak system (5 correct answers to trigger mini game, no scaling).
 - [ ] Introduce some losing condition for game over (e.g. count mistakes, introduce lives, lives could be regained on milestones or with mini games).
-- [ ] Update draw mode so that user clicks on the first box and then on the target box. Similar to target mode but ghost marbles will be shown.
+- [x] Improve draw mode: allow clicking any empty box (not just first) and show ghost marbles immediately for better motor control accessibility.
 
 # Bugfixes
 - [x] Fix messed up grid after 200 collapse appears

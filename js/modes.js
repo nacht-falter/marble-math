@@ -606,19 +606,24 @@ function setupDrawModeHandlers() {
     const hasChildren = box.hasChildNodes();
     if (hasChildren) return;
 
-    // Check if this is the first empty box
     const firstEmptyBox = getFirstEmptyBox();
+    if (!firstEmptyBox) return;
 
-    if (!firstEmptyBox || box !== firstEmptyBox.box) {
-      return;
+    if (gameState.classicDrawMode) {
+      // Classic mode: must start at the first empty box
+      if (box !== firstEmptyBox.box) {
+        return;
+      }
     }
+    // Improved mode: can start at any empty box
 
     isDrawing = true;
-    drawStartBox = box;
+    drawStartBox = firstEmptyBox.box; // Always use first empty box as start
     lastRowAddY = -Infinity; // Reset Y position tracking
 
-    // Add preview to start box
-    addGhostMarble(box);
+    // Show ghost marbles from first empty box to clicked box
+    const boxesToFill = getBoxesFromStartToHover(drawStartBox, box);
+    boxesToFill.forEach((b) => addGhostMarble(b));
   }
 
   // Mouse down handler
@@ -1203,17 +1208,24 @@ function setupMiniGridDrawing() {
     // Check if empty
     if (box.hasChildNodes()) return;
 
-    // Only allow starting from first empty box
     const allBoxes = getAllMiniBoxes();
     const firstEmptyBox = allBoxes.find(b => !b.hasChildNodes());
+    if (!firstEmptyBox) return;
 
-    if (!firstEmptyBox || box !== firstEmptyBox) {
-      return;
+    if (gameState.classicDrawMode) {
+      // Classic mode: must start at the first empty box
+      if (box !== firstEmptyBox) {
+        return;
+      }
     }
+    // Improved mode: can start at any empty box
 
     isDrawing = true;
-    drawStartBox = box;
-    addGhostMarble(box); // Reuse main grid function
+    drawStartBox = firstEmptyBox; // Always use first empty box as start
+
+    // Show ghost marbles from first empty box to clicked box
+    const boxesToFill = getMiniBoxesFromStartToHover(drawStartBox, box);
+    boxesToFill.forEach(b => addGhostMarble(b)); // Reuse main grid function
   }
 
   function handleDrawMove(box) {
@@ -1583,7 +1595,7 @@ function fillDrawnBoxes(boxes, isCorrect) {
       const leveledUp = newLevel > previousLevel;
 
       // Check if we've reached Level 5 and should switch to target mode
-      if (leveledUp && newLevel === 2 && gameState.gameMode === "draw") {
+      if (leveledUp && newLevel === 5 && gameState.gameMode === "draw") {
         gameState.gameMode = "target";
         updateModeUI();
       }

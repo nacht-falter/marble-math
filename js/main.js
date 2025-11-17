@@ -14,6 +14,7 @@ const gameState = {
   totalMarbles: 0,
   currentRowIndex: 0,
   gameMode: "drag", // 'drag', 'draw', or 'target'
+  classicDrawMode: false, // false = improved (click anywhere), true = classic (must start at first box)
   currentTargetNumber: 0,
   gamePhase: "practice", // 'practice' or 'active'
   currentStreak: 0,
