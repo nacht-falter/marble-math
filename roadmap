@@ -14,8 +14,8 @@
 - [x] Update color scheme for marbles placed in grid to look more cohesive.
 - [x] Add custom tooltips to badges at the top with detailed information.
 - [ ] Improve mini game layout and styles.
-- [ ] Show mode indicator in top left corner underneath the level badge.
-- [ ] Once lives are implemented hearts underneath the streak badge (lost hearts are transparent).
+- [x] Show mode indicator in top left corner underneath the level badge.
+- [x] Once lives are implemented hearts underneath the streak badge (lost hearts are transparent).
 
 ## Gameplay
 - [x] Add score system with streaks which build up until a minigame pops up.
@@ -24,7 +24,7 @@
 - [x] New "target" game mode, where the player has to click on the correct box instead of drawing the correct amount of marbles. This is an advanced mode, since it lacks the visual feedback.
 - [x] Update instructions.
 - [ ] Balance streak multipliers, adjust streak system (5 correct answers to trigger mini game, no scaling).
-- [ ] Introduce some losing condition for game over (e.g. count mistakes, introduce lives, lives could be regained on milestones or with mini games).
+- [x] Introduce some losing condition for game over (e.g. count mistakes, introduce lives, lives could be regained on milestones or with mini games).
 - [x] Improve draw mode: allow clicking any empty box (not just first) and show ghost marbles immediately for better motor control accessibility.
 
 # Bugfixes
