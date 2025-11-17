@@ -708,6 +708,13 @@ function setupDrawModeHandlers() {
       fillDrawnBoxes(drawnBoxes, false);
       // For ERROR case: remove unnecessary empty rows
       removeUnnecessaryEmptyRows();
+
+      // Lose a life and check for game over
+      counters.loseLife();
+      display.updateLives(true);
+      if (gameState.currentLives === 0) {
+        showGameOver();
+      }
     }
 
     drawStartBox = null;
@@ -784,6 +791,13 @@ function setupTargetModeHandlers() {
       if (gameState.gamePhase === "active" && gameState.currentStreak > 0) {
         counters.resetStreak();
         display.updateStreak();
+      }
+
+      // Lose a life and check for game over
+      counters.loseLife();
+      display.updateLives(true);
+      if (gameState.currentLives === 0) {
+        showGameOver();
       }
     }
   }
@@ -1398,6 +1412,10 @@ function validateMiniGameAnswer(boxesFromTargetMode = null) {
       modalContent.classList.add("shine");
     }
 
+    // Gain a life for successful mini-game completion
+    counters.gainLife();
+    display.updateLives(true);
+
     // After brief delay, clear ghost marbles and place real marbles
     setTimeout(() => {
       drawnBoxes.forEach((box) => {
@@ -1882,6 +1900,10 @@ function startChallenge() {
   // Switch to draw mode and start active game phase
   gameState.gameMode = "draw";
   gameState.gamePhase = "active";
+
+  // Reset lives to max when starting challenge
+  counters.resetLives();
+
   updateModeUI();
   generateTargetNumber();
 
@@ -1901,6 +1923,9 @@ function updateModeUI() {
   const targetNumber = document.getElementById("target-number");
   const modeControls = document.querySelector(".mode-controls");
   const gridContainer = document.getElementById("grid-container");
+  const modeIndicator = document.getElementById("mode-indicator");
+  const modeIcon = document.getElementById("mode-icon");
+  const modeLabel = document.getElementById("mode-label");
 
   // Remove target-box from all boxes first
   document.querySelectorAll(".box.target-box").forEach((box) => {
@@ -1958,6 +1983,35 @@ function updateModeUI() {
       firstEmptyBox.box.classList.add("target-box");
     }
   }
+
+  // Update mode indicator icon and label
+  if (modeIcon && modeLabel) {
+    if (gameState.gameMode === "drag") {
+      modeIcon.textContent = "🖐️"; // Hand for practice mode
+      modeLabel.textContent = "Practice Mode";
+    } else if (gameState.gameMode === "draw") {
+      modeIcon.textContent = "🎯"; // Target for challenge mode
+      modeLabel.textContent = "Challenge Mode";
+    } else if (gameState.gameMode === "target") {
+      modeIcon.textContent = "⚡"; // Lightning for harder challenge mode
+      modeLabel.textContent = "Challenge Mode";
+    }
+  }
+}
+
+// Show game over modal
+function showGameOver() {
+  const modal = document.getElementById("game-over-modal");
+  if (!modal) return;
+
+  // Update stats
+  document.getElementById("final-level").textContent = gameState.level;
+  document.getElementById("final-score").textContent = gameState.score;
+  document.getElementById("final-marbles").textContent = gameState.totalMarbles;
+  document.getElementById("final-minigames").textContent = gameState.miniGamesUnlocked;
+
+  // Show modal
+  modal.style.display = "flex";
 }
 
 export {
@@ -1968,4 +2022,5 @@ export {
   updateModeUI,
   startChallenge,
   showMiniGame,
+  showGameOver,
 };

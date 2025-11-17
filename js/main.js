@@ -20,6 +20,8 @@ const gameState = {
   currentStreak: 0,
   miniGamesUnlocked: 0, // Track how many mini-games have been unlocked
   milestonesShown: [], // Track which milestone prompts have been shown (100, 200, etc.)
+  maxLives: 5,
+  currentLives: 5,
   currentLevel: 1, // Track player level based on score
   score: 0, // Score earned in active mode (marbles × streak multiplier)
   // Calculate next streak requirement (10, 15, 20, 25, ...)
@@ -102,6 +104,23 @@ const counters = {
 
   resetMiniGames() {
     gameState.miniGamesUnlocked = 0;
+  },
+
+  // Lives operations
+  loseLife() {
+    if (gameState.gamePhase === "active" && gameState.currentLives > 0) {
+      gameState.currentLives--;
+    }
+  },
+
+  gainLife() {
+    if (gameState.gamePhase === "active" && gameState.currentLives < gameState.maxLives) {
+      gameState.currentLives++;
+    }
+  },
+
+  resetLives() {
+    gameState.currentLives = gameState.maxLives;
   }
 };
 
@@ -266,11 +285,57 @@ const display = {
     }
   },
 
+  updateLives(animate = false) {
+    const livesDisplay = document.getElementById("lives-display");
+    if (!livesDisplay) return;
+
+    // Always show lives display, but disable in practice mode
+    livesDisplay.classList.remove("hidden");
+
+    if (gameState.gamePhase === "active") {
+      livesDisplay.classList.remove("disabled");
+    } else {
+      livesDisplay.classList.add("disabled");
+    }
+
+    // Update heart icons
+    const hearts = livesDisplay.querySelectorAll(".heart");
+    let changedHeartIndex = -1;
+
+    hearts.forEach((heart, index) => {
+      const wasAlive = heart.classList.contains("alive");
+      const shouldBeAlive = index < gameState.currentLives;
+
+      if (index < gameState.currentLives) {
+        heart.classList.remove("lost");
+        heart.classList.add("alive");
+      } else {
+        heart.classList.remove("alive");
+        heart.classList.add("lost");
+      }
+
+      // Track which heart changed state
+      if (wasAlive !== shouldBeAlive) {
+        changedHeartIndex = index;
+      }
+    });
+
+    // Animate only the heart that changed (only in active mode)
+    if (animate && gameState.gamePhase === "active" && changedHeartIndex !== -1) {
+      const changedHeart = hearts[changedHeartIndex];
+      changedHeart.classList.add("bump");
+      setTimeout(() => {
+        changedHeart.classList.remove("bump");
+      }, 300);
+    }
+  },
+
   // Update all displays at once
   updateAll() {
     this.updateMarbles();
     this.updateStreak();
     this.updateLevel();
+    this.updateLives();
   }
 };
 
@@ -299,6 +364,7 @@ function initGame() {
   counters.resetStreak();
   counters.resetScore();
   counters.resetMiniGames();
+  counters.resetLives();
 
   // Initialize "Start Challenge" button
   const modeToggleBtn = document.getElementById("mode-toggle-btn");
@@ -361,6 +427,16 @@ document.addEventListener("DOMContentLoaded", () => {
         instructionsModal.style.display = "none";
       });
     }
+  }
+
+  // Setup game over modal play again button
+  const playAgainBtn = document.getElementById("play-again-btn");
+  const gameOverModal = document.getElementById("game-over-modal");
+  if (playAgainBtn && gameOverModal) {
+    playAgainBtn.addEventListener("click", () => {
+      gameOverModal.style.display = "none";
+      initGame();
+    });
   }
 });
 

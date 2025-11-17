@@ -937,8 +937,8 @@ button:hover {
   justify-content: space-between;
   align-items: stretch;
   gap: 10px;
-  margin-bottom: 10px;
   width: 100%;
+  margin-bottom: 10px;
 }
 
 /* Common stats badge styles */
@@ -1232,6 +1232,103 @@ button:hover {
   animation: fireFlicker 1.5s ease-in-out infinite;
 }
 
+/* Grid overlay bar - container for lives, mode indicator, etc. */
+.grid-overlay-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 5px;
+  height: 0; /* Don't take up space in layout */
+  transform: translateY(25px); /* Position it overlaid on grid */
+  z-index: 10;
+  pointer-events: none; /* Don't interfere with grid interactions */
+}
+
+/* Mode indicator */
+.mode-indicator {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  pointer-events: auto; /* Allow hover */
+}
+
+.mode-icon {
+  font-size: 1.2rem;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.mode-label {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  margin-left: 0;
+}
+
+.mode-indicator:hover .mode-label {
+  max-width: 150px;
+  opacity: 1;
+  margin: 0 5px;
+}
+
+/* Lives display - hearts */
+.lives-display {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 8px;
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  transition: opacity 0.3s ease;
+}
+
+.lives-display.hidden {
+  display: none;
+}
+
+.lives-display.disabled {
+  opacity: 0.3;
+}
+
+.lives-display .heart {
+  font-size: 1.2rem;
+  transition: opacity 0.3s ease;
+  display: inline-block;
+}
+
+.lives-display .heart.alive {
+  opacity: 1;
+}
+
+.lives-display .heart.lost {
+  opacity: 0.3;
+}
+
+.lives-display .heart.bump {
+  animation: heartBump 0.3s ease-out;
+}
+
+@keyframes heartBump {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 .level-display .stats-badge-icon {
   animation: starTwinkle 3s ease-in-out infinite;
 }
@@ -1450,6 +1547,51 @@ button:hover {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
+}
+
+/* Game Over Modal Styles */
+.game-over-content {
+  max-width: 600px;
+}
+
+.game-over-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin: 25px 0;
+  padding: 20px;
+  background-color: var(--bg-body);
+  border-radius: 10px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: bold;
+  color: var(--purple);
+}
+
+@media (max-width: 600px) {
+  .game-over-stats {
+    grid-template-columns: 1fr;
+  }
 }
 
 .modal-secondary-btn:hover {

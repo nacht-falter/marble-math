@@ -76,9 +76,25 @@
         </div>
       </div>
 
+      <!-- Grid overlay bar (lives, mode indicator, etc.) -->
+      <div class="grid-overlay-bar">
+        <div class="mode-indicator" id="mode-indicator">
+          <span class="mode-icon" id="mode-icon">🖐️</span>
+          <span class="mode-label" id="mode-label">Practice Mode</span>
+        </div>
+        <div class="lives-display" id="lives-display">
+          <span class="heart alive">❤️</span>
+          <span class="heart alive">❤️</span>
+          <span class="heart alive">❤️</span>
+          <span class="heart alive">❤️</span>
+          <span class="heart alive">❤️</span>
+        </div>
+      </div>
+
       <div class="grid-container" id="grid-container">
         <!-- Rows will be added dynamically here -->
       </div>
+
 
       <div class="marble-group-container">
         <div id="marble-group-wrapper" class="marble-group-wrapper">
@@ -136,6 +152,37 @@
           <div class="modal-buttons">
             <button class="modal-secondary-btn" id="milestone-continue-btn">Not yet, keep practicing</button>
             <button class="modal-primary-btn" id="milestone-start-btn">Let's go!</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Game Over modal -->
+      <div id="game-over-modal" class="modal" style="display: none">
+        <div class="modal-content game-over-content">
+          <h2>💔 Game Over!</h2>
+          <p class="modal-message">
+            You ran out of lives, but you did amazing!
+          </p>
+          <div class="game-over-stats">
+            <div class="stat-item">
+              <span class="stat-label">Final Level</span>
+              <span class="stat-value" id="final-level">1</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Total Score</span>
+              <span class="stat-value" id="final-score">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Marbles Placed</span>
+              <span class="stat-value" id="final-marbles">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Mini-Games Completed</span>
+              <span class="stat-value" id="final-minigames">0</span>
+            </div>
+          </div>
+          <div class="modal-buttons">
+            <button class="modal-primary-btn" id="play-again-btn">Play Again</button>
           </div>
         </div>
       </div>
