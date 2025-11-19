@@ -7,6 +7,7 @@ import {
   startChallenge,
   updateModeUI,
 } from "./modes.js";
+import { GAME_CONFIG } from "./config.js";
 
 // Game state
 const gameState = {
@@ -20,25 +21,22 @@ const gameState = {
   currentStreak: 0,
   miniGamesUnlocked: 0, // Track how many mini-games have been unlocked
   milestonesShown: [], // Track which milestone prompts have been shown (100, 200, etc.)
-  maxLives: 5,
-  currentLives: 5,
+  streakRequirement: GAME_CONFIG.STREAK_TARGET, // Fixed streak requirement for mini-games
+  maxLives: GAME_CONFIG.MAX_LIVES,
+  currentLives: GAME_CONFIG.MAX_LIVES,
   currentLevel: 1, // Track player level based on score
   score: 0, // Score earned in active mode (marbles × streak multiplier)
-  // Calculate next streak requirement (10, 15, 20, 25, ...)
-  get nextStreakRequirement() {
-    return 10 + (this.miniGamesUnlocked * 5);
-  },
-  // Calculate level based on score (scaling: 250, 500, 750, 1000, ...)
+  // Calculate level based on score (scaling: 100, 200, 300, 400, ...)
   get level() {
-    // Each level requires 250 more points than the last
-    // Level 1: 0-249, Level 2: 250-749, Level 3: 750-1499, etc.
-    // Formula: level = floor((sqrt(1 + 8*score/250) - 1) / 2) + 1
-    return Math.floor((Math.sqrt(1 + 8 * this.score / 250) - 1) / 2) + 1;
+    // Each level requires LEVEL_SCORE_BASE more points than the last
+    // Level 1: 0-99, Level 2: 100-299, Level 3: 300-599, etc.
+    // Formula: level = floor((sqrt(1 + 8*score/BASE) - 1) / 2) + 1
+    return Math.floor((Math.sqrt(1 + 8 * this.score / GAME_CONFIG.LEVEL_SCORE_BASE) - 1) / 2) + 1;
   },
   // Calculate total score needed for a given level
   getScoreForLevel(level) {
-    // Sum of arithmetic sequence: n * (n - 1) / 2 * 250
-    return (level - 1) * level / 2 * 250;
+    // Sum of arithmetic sequence: n * (n - 1) / 2 * BASE
+    return (level - 1) * level / 2 * GAME_CONFIG.LEVEL_SCORE_BASE;
   },
   // Calculate score needed for next level
   get scoreForNextLevel() {
@@ -238,18 +236,18 @@ const display = {
     const streakProgressFill = document.getElementById("streak-progress-bar-fill");
     const streakCounter = document.getElementById("streak-counter");
 
-    const nextRequirement = gameState.nextStreakRequirement;
+    const requirement = gameState.streakRequirement;
 
     if (streakNumber) {
       streakNumber.textContent = gameState.currentStreak;
     }
 
     if (streakTarget) {
-      streakTarget.textContent = `/${nextRequirement}`;
+      streakTarget.textContent = `/${requirement}`;
     }
 
     if (streakProgressFill) {
-      const progress = Math.min((gameState.currentStreak / nextRequirement) * 100, 100);
+      const progress = Math.min((gameState.currentStreak / requirement) * 100, 100);
       streakProgressFill.style.width = `${progress}%`;
     }
 
@@ -260,10 +258,10 @@ const display = {
     const tooltipStreakProgress = document.getElementById("tooltip-streak-progress");
 
     if (tooltipStreak) tooltipStreak.textContent = gameState.currentStreak;
-    if (tooltipStreakGoal) tooltipStreakGoal.textContent = nextRequirement;
-    if (tooltipStreakGoal2) tooltipStreakGoal2.textContent = nextRequirement;
+    if (tooltipStreakGoal) tooltipStreakGoal.textContent = requirement;
+    if (tooltipStreakGoal2) tooltipStreakGoal2.textContent = requirement;
     if (tooltipStreakProgress) {
-      const progress = Math.min((gameState.currentStreak / nextRequirement) * 100, 100);
+      const progress = Math.min((gameState.currentStreak / requirement) * 100, 100);
       tooltipStreakProgress.style.width = `${progress}%`;
     }
 

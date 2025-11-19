@@ -1655,13 +1655,13 @@ function fillDrawnBoxes(boxes, isCorrect) {
       let willShowMiniGame = false;
       if (gameState.gamePhase === "active") {
         // Only increment streak if we haven't reached the requirement yet
-        // This prevents going from 10/10 to 11/10, 12/10, etc.
-        if (gameState.currentStreak < gameState.nextStreakRequirement) {
+        // This prevents going from 5/5 to 6/5, 7/5, etc.
+        if (gameState.currentStreak < gameState.streakRequirement) {
           counters.incrementStreak();
           display.updateStreak(true); // Animate on increase
 
           // Check if we've just reached the requirement
-          if (gameState.currentStreak >= gameState.nextStreakRequirement) {
+          if (gameState.currentStreak >= gameState.streakRequirement) {
             willShowMiniGame = true;
 
             // Immediately disable target display to show mini game is coming
