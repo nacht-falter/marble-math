@@ -13,9 +13,10 @@
 - [x] Show current score at the top
 - [x] Update color scheme for marbles placed in grid to look more cohesive.
 - [x] Add custom tooltips to badges at the top with detailed information.
-- [ ] Improve mini game layout and styles.
+- [x] Improve mini game layout and styles.
 - [x] Show mode indicator in top left corner underneath the level badge.
 - [x] Once lives are implemented hearts underneath the streak badge (lost hearts are transparent).
+- [ ] Add dynamicly updating subtle gradient to main game container representing the users "health" (red = 1 heart, green = 5 hearts)
 
 ## Gameplay
 - [x] Add score system with streaks which build up until a minigame pops up.

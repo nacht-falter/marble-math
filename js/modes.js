@@ -11,6 +11,8 @@ import {
   getFirstEmptyBox,
 } from "./grid.js";
 
+import { GAME_CONFIG } from "./config.js";
+
 function createMarblesInGroup() {
   const marbleGroup = document.getElementById("marble-group");
   const marbleCountIndicator = document.getElementById(
@@ -135,8 +137,8 @@ function placeMarbleGroupInGrid(directCount = null) {
   gameState.currentLevel = newLevel;
   const leveledUp = newLevel > previousLevel;
 
-  // Check if we've reached Level 5 and should switch to target mode
-  if (leveledUp && newLevel === 5 && gameState.gameMode === "draw") {
+  // Check if we've reached target mode level and should switch to target mode
+  if (leveledUp && newLevel === GAME_CONFIG.TARGET_MODE_LEVEL && gameState.gameMode === "draw") {
     gameState.gameMode = "target";
     updateModeUI();
   }
@@ -769,8 +771,11 @@ function setupTargetModeHandlers() {
     // This means: clickedIndex should equal targetCount - 1
     const isCorrect = (clickedIndex === targetCount - 1);
 
-    // Get the boxes that will be filled
+    // Get the boxes that will be filled (for correct answers)
     const boxesToFill = allEmptyBoxes.slice(0, targetCount);
+
+    // Get the boxes from first empty to clicked box (for error feedback)
+    const boxesToClickedBox = allEmptyBoxes.slice(0, clickedIndex + 1);
 
     if (isCorrect) {
       // Correct answer! Show ghost marbles first
@@ -781,10 +786,10 @@ function setupTargetModeHandlers() {
         fillDrawnBoxes(boxesToFill, true);
       }, 150);
     } else {
-      // Incorrect answer - show error feedback
-      box.classList.add("draw-incorrect");
+      // Incorrect answer - show error feedback on all boxes from first empty to clicked box
+      boxesToClickedBox.forEach((b) => b.classList.add("draw-incorrect"));
       setTimeout(() => {
-        box.classList.remove("draw-incorrect");
+        boxesToClickedBox.forEach((b) => b.classList.remove("draw-incorrect"));
       }, 500);
 
       // Reset streak on wrong answer
@@ -1612,8 +1617,8 @@ function fillDrawnBoxes(boxes, isCorrect) {
       gameState.currentLevel = newLevel;
       const leveledUp = newLevel > previousLevel;
 
-      // Check if we've reached Level 5 and should switch to target mode
-      if (leveledUp && newLevel === 5 && gameState.gameMode === "draw") {
+      // Check if we've reached target mode level and should switch to target mode
+      if (leveledUp && newLevel === GAME_CONFIG.TARGET_MODE_LEVEL && gameState.gameMode === "draw") {
         gameState.gameMode = "target";
         updateModeUI();
       }
@@ -1870,8 +1875,8 @@ function ensureEmptyRowBelowLastRow() {
     totalEmptyBoxes += row.boxes.filter(b => !b.hasChildNodes()).length;
   });
 
-  if (gameState.gameMode === "draw") {
-    // In draw mode, ensure enough empty boxes for the max target
+  if (gameState.gameMode === "draw" || gameState.gameMode === "target") {
+    // In draw or target mode, ensure enough empty boxes for the max target
     // Calculate max possible target for current level (same logic as generateTargetNumber)
     const level = gameState.level;
     const maxTargetForLevel = Math.min(9 + level, 30);
@@ -1923,9 +1928,19 @@ function updateModeUI() {
   const targetNumber = document.getElementById("target-number");
   const modeControls = document.querySelector(".mode-controls");
   const gridContainer = document.getElementById("grid-container");
+  const gameContainer = document.querySelector(".game-container");
   const modeIndicator = document.getElementById("mode-indicator");
   const modeIcon = document.getElementById("mode-icon");
   const modeLabel = document.getElementById("mode-label");
+
+  // Update practice mode class on game container
+  if (gameContainer) {
+    if (gameState.gamePhase === "practice") {
+      gameContainer.classList.add("practice-mode");
+    } else {
+      gameContainer.classList.remove("practice-mode");
+    }
+  }
 
   // Remove target-box from all boxes first
   document.querySelectorAll(".box.target-box").forEach((box) => {

@@ -29,10 +29,11 @@
   --accent-green: #27ae60;
 
   /* Purple colors */
-  --purple-lightest: #c5abec;
-  --purple-light: #9b59b6;
+  --purple-lightest: #ecdfff;
+  --purple-lighter: #c5abec;
+  --purple-light: #a569bd;
+  --purple-medium: #9b59b6;
   --purple: #8e44ad;
-  --purple-lighter: #a569bd;
   --purple-dark: #6c3483;
 
   /* Yellow colors */
@@ -129,7 +130,7 @@ body {
   margin-top: 20px;
   font-size: 18px;
   font-weight: bold;
-  background: linear-gradient(135deg, var(--purple-light), var(--purple));
+  background: linear-gradient(135deg, var(--purple-medium), var(--purple));
   color: var(--text-light);
   border: none;
   border-radius: 8px;
@@ -149,8 +150,8 @@ body {
   box-shadow: var(--shadow-md);
   background: linear-gradient(
     135deg,
-    var(--purple-lighter),
-    var(--purple-light)
+    var(--purple-light),
+    var(--purple-medium)
   );
 }
 
@@ -345,7 +346,7 @@ body {
   border-radius: 5px;
   background: linear-gradient(
     135deg,
-    var(--purple-light),
+    var(--purple-medium),
     var(--purple)
   );
   display: flex;
@@ -389,10 +390,17 @@ body {
   -ms-user-select: none;
 }
 
+/* Only show hover effect in active game phase (not practice mode) */
+.game-container:not(.practice-mode) .box:not(:has(.marble)):hover {
+  border-color: var(--primary-blue-bright);
+}
+
 .box.target-box {
   background-color: var(--bg-light-blue);
   border-color: var(--primary-blue-light);
   border-width: 3px;
+  position: relative;
+  overflow: hidden;
 }
 
 .box.draw-preview {
@@ -1045,7 +1053,7 @@ button:hover {
 
 /* Level tooltip - purple theme (inverted) */
 .level-display .tooltip-header {
-  background-color: var(--purple-light);
+  background-color: var(--purple-medium);
   color: var(--text-light);
 }
 
@@ -1054,11 +1062,11 @@ button:hover {
 }
 
 .level-display .tooltip-progress-fill {
-  background: linear-gradient(90deg, var(--purple-light), var(--purple-dark));
+  background: linear-gradient(90deg, var(--purple-medium), var(--purple-dark));
 }
 
 .level-display .custom-tooltip::after {
-  border-bottom-color: var(--purple-light);
+  border-bottom-color: var(--purple-medium);
 }
 
 /* Marble count tooltip - blue theme (inverted) */
@@ -1157,7 +1165,7 @@ button:hover {
 
 /* Level-specific colors */
 .level-display {
-  background: linear-gradient(135deg, var(--purple-lightest), var(--purple-light));
+  background: linear-gradient(135deg, var(--purple-lighter), var(--purple-medium));
   border-color: var(--purple-dark);
   box-shadow: 0 3px 8px var(--purple-shadow);
 }
@@ -1176,7 +1184,7 @@ button:hover {
 }
 
 .level-display .stats-badge-progress-fill {
-  background: linear-gradient(90deg, var(--purple-light), var(--purple-dark));
+  background: linear-gradient(90deg, var(--purple-medium), var(--purple-dark));
 }
 
 /* Marble count-specific colors */
@@ -1502,7 +1510,7 @@ button:hover {
   padding: 12px 30px;
   font-size: 18px;
   font-weight: bold;
-  background: linear-gradient(135deg, var(--purple-light), var(--purple));
+  background: linear-gradient(135deg, var(--purple-medium), var(--purple));
   color: white;
   border: none;
   border-radius: 8px;
@@ -1526,7 +1534,7 @@ button:hover {
   padding: 12px 30px;
   font-size: 18px;
   font-weight: bold;
-  background: linear-gradient(135deg, var(--purple-light), var(--purple));
+  background: linear-gradient(135deg, var(--purple-medium), var(--purple));
   color: white;
   border: none;
   border-radius: 8px;
@@ -1620,10 +1628,11 @@ button:hover {
 
 /* Mini-game styles */
 .mini-game-content {
-  background-color: white;
+  background: linear-gradient(135deg, var(--purple-lightest) 0%, var(--purple-dark) 100%);
   padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  border-radius: 16px;
+  border: 3px solid var(--purple-medium);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   max-width: 90vw;
   width: 100%;
   text-align: center;
@@ -1671,26 +1680,43 @@ button:hover {
   }
 }
 
-.mini-game-instruction {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.5rem;
+.mini-game-content h2 {
+  margin: 0.5rem 0;
+}
+
+.fire-emoji {
+  display: inline-block;
+  animation: firePulse 2s ease-in-out infinite;
+}
+
+@keyframes firePulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 5px rgba(255, 193, 7, 0.3));
+  }
+  50% {
+    transform: scale(1.2);
+    filter: drop-shadow(0 0 15px rgba(255, 193, 7, 0.6));
+  }
 }
 
 .mini-game-problem {
   font-size: 2.5rem;
   font-weight: bold;
   color: var(--purple);
-  margin: 1rem 0;
+  margin-top: 1rem;
+  background-color: var(--purple-lightest);
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: 2px solid var(--purple);
+  display: inline-block;
 }
 
 .mini-grid-container {
   display: flex;
   flex-direction: column;
-  gap: 0.5%;
-  margin: 1rem auto;
-  padding: 1rem;
-  background: var(--bg-grid);
+  gap: 5px; /* Match main grid spacing */
+  margin: 1rem auto 0;
   border-radius: 12px;
   width: 100%;
   max-width: 100%;
@@ -1699,19 +1725,50 @@ button:hover {
 
 .mini-row {
   display: flex;
-  gap: 0.5%;
+  gap: 5px; /* Match main grid box spacing */
   justify-content: center;
   width: 100%;
 }
 
 .mini-box {
-  flex: 1;
-  aspect-ratio: 1;
-  max-width: 10%;
-  border: 2px solid var(--primary-blue-dark);
-  border-radius: 6px;
-  background: white;
-  transition: all 0.15s ease;
+  width: 7vw;
+  height: 7vw;
+  flex-shrink: 0;
+  border: 2px solid var(--text-primary);
+  border-radius: 5px;
+  background-color: var(--bg-container);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
+  position: relative;
+  overflow: hidden;
+  animation: boxAppear 0.3s ease-out backwards;
+}
+
+/* Stagger animation for boxes */
+.mini-box:nth-child(1) { animation-delay: 0.05s; }
+.mini-box:nth-child(2) { animation-delay: 0.1s; }
+.mini-box:nth-child(3) { animation-delay: 0.15s; }
+.mini-box:nth-child(4) { animation-delay: 0.2s; }
+.mini-box:nth-child(5) { animation-delay: 0.25s; }
+.mini-box:nth-child(6) { animation-delay: 0.3s; }
+.mini-box:nth-child(7) { animation-delay: 0.35s; }
+.mini-box:nth-child(8) { animation-delay: 0.4s; }
+.mini-box:nth-child(9) { animation-delay: 0.45s; }
+.mini-box:nth-child(10) { animation-delay: 0.5s; }
+
+@keyframes boxAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 /* Mini-grid cursor modes */
@@ -1816,6 +1873,11 @@ button:hover {
   .mini-game-content {
     max-width: 600px;
     padding: 30px;
+  }
+
+  .mini-box {
+    width: 50px;
+    height: 50px;
   }
 
   .modal-close-btn {
