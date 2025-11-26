@@ -27,6 +27,7 @@
 - [ ] Balance streak multipliers, adjust streak system (5 correct answers to trigger mini game, no scaling).
 - [x] Introduce some losing condition for game over (e.g. count mistakes, introduce lives, lives could be regained on milestones or with mini games).
 - [x] Improve draw mode: allow clicking any empty box (not just first) and show ghost marbles immediately for better motor control accessibility.
+- [ ] Division mini game problems are too hard.
 
 # Bugfixes
 - [x] Fix messed up grid after 200 collapse appears
@@ -43,4 +44,4 @@
 - [x] Fix width for marble group on medium screen sizes
 - [x] Marble count is not being reset on reset game
 - [x] Instructions are not fully visible on mobile.
-- [ ] target-box class is not being updated after minigame
+- [x] target-box class is not being updated after minigame

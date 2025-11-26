@@ -13,6 +13,72 @@ import {
 
 import { GAME_CONFIG } from "./config.js";
 
+// ============================================
+// Helper Functions for Marble Placement
+// ============================================
+
+// Helper: Create a marble element and place it in a box
+function createAndPlaceMarble(box) {
+  const newMarble = document.createElement("div");
+  newMarble.className = "marble";
+
+  // Track marbles placed in challenge mode for level calculation
+  // Multiply by current streak (minimum 1x)
+  counters.incrementMarbles();
+  if (gameState.gameMode === "challenge") {
+    const streakMultiplier = Math.max(1, gameState.currentStreak);
+    counters.addScore(streakMultiplier);
+  }
+  newMarble.textContent = gameState.totalMarbles;
+
+  // Get current row for color
+  const rowElement = box.parentElement;
+  const rowData = gameState.rows.find(
+    (r) => r.element && r.element.querySelector(".row") === rowElement,
+  );
+
+  if (rowData && rowData.color) {
+    newMarble.style.background = `radial-gradient(circle at 30% 30%, ${rowData.color.marbleLight}, ${rowData.color.marbleDark})`;
+  }
+
+  box.appendChild(newMarble);
+
+  if (rowData) {
+    rowData.marbleCount++;
+  }
+
+  return rowData;
+}
+
+// Helper: Update challenge difficulty based on level
+function updateChallengeDifficulty() {
+  if (gameState.gameMode === "challenge") {
+    const currentLevel = gameState.level;
+    const visualFeedbackUntilLevel = GAME_CONFIG.CHALLENGE_DIFFICULTY.VISUAL_FEEDBACK_UNTIL_LEVEL;
+    gameState.challengeVisualFeedback = currentLevel < visualFeedbackUntilLevel;
+  }
+}
+
+// Helper: Check for level-up and update difficulty
+function checkForLevelUpAndDifficultyChange(previousLevel) {
+  const newLevel = gameState.level;
+  gameState.currentLevel = newLevel;
+  const leveledUp = newLevel > previousLevel;
+
+  // Update challenge difficulty if level changed
+  if (leveledUp) {
+    const previousVisualFeedback = gameState.challengeVisualFeedback;
+    updateChallengeDifficulty();
+
+    // If visual feedback setting changed, update UI classes
+    if (previousVisualFeedback !== gameState.challengeVisualFeedback) {
+      updateModeUI();
+    }
+  }
+
+  return { newLevel, leveledUp };
+}
+
 function createMarblesInGroup() {
   const marbleGroup = document.getElementById("marble-group");
   const marbleCountIndicator = document.getElementById(
@@ -75,22 +141,12 @@ function placeMarbleGroupInGrid(directCount = null) {
       emptyBoxIndex = 0;
     }
 
-    const newMarble = document.createElement("div");
-    newMarble.className = "marble";
-
-    // Track marbles placed in active mode for level calculation
-    // Multiply by current streak (minimum 1x)
-    counters.incrementMarbles();
-    if (gameState.gamePhase === "active") {
-      const streakMultiplier = Math.max(1, gameState.currentStreak);
-      counters.addScore(streakMultiplier);
+    // Use helper to create and place marble
+    const box = currentRow.boxes[emptyBoxIndex];
+    const rowData = createAndPlaceMarble(box);
+    if (rowData) {
+      currentRow = rowData;
     }
-    newMarble.textContent = gameState.totalMarbles;
-
-    newMarble.style.background = `radial-gradient(circle at 30% 30%, ${currentRow.color.marbleLight}, ${currentRow.color.marbleDark})`;
-
-    currentRow.boxes[emptyBoxIndex].appendChild(newMarble);
-    currentRow.marbleCount++;
 
     // Check for collapses and update currentRow if a new row was created
     const newRow = handleCollapse();
@@ -133,15 +189,7 @@ function placeMarbleGroupInGrid(directCount = null) {
 
   // Update displays - check if level changed for animation
   const previousLevel = gameState.currentLevel;
-  const newLevel = gameState.level;
-  gameState.currentLevel = newLevel;
-  const leveledUp = newLevel > previousLevel;
-
-  // Check if we've reached target mode level and should switch to target mode
-  if (leveledUp && newLevel === GAME_CONFIG.TARGET_MODE_LEVEL && gameState.gameMode === "draw") {
-    gameState.gameMode = "target";
-    updateModeUI();
-  }
+  const { newLevel, leveledUp } = checkForLevelUpAndDifficultyChange(previousLevel);
 
   display.updateMarbles();
   display.updateLevel(leveledUp);
@@ -592,8 +640,8 @@ function updateTargetDisplay() {
   }
 }
 
-// Setup draw mode drag handlers
-function setupDrawModeHandlers() {
+// Setup challenge mode handlers (with visual feedback - ghost marbles while clicking)
+function setupChallengeHandlers() {
   const gridContainer = document.getElementById("grid-container");
   let isDrawing = false;
   let drawStartBox = null;
@@ -601,7 +649,7 @@ function setupDrawModeHandlers() {
 
   // Helper function to start drawing
   function startDrawing(box) {
-    if (gameState.gameMode !== "draw") return;
+    if (gameState.gameMode !== "challenge" || !gameState.challengeVisualFeedback) return;
     if (!box) return;
 
     // Check if this is an empty box
@@ -648,7 +696,7 @@ function setupDrawModeHandlers() {
 
   // Helper function for draw move
   function handleDrawMove(box, clientY) {
-    if (!isDrawing || gameState.gameMode !== "draw") return;
+    if (!isDrawing || gameState.gameMode !== "challenge" || !gameState.challengeVisualFeedback) return;
 
     if (!box) return;
 
@@ -681,7 +729,7 @@ function setupDrawModeHandlers() {
 
   // Helper function to end drawing
   function endDrawing() {
-    if (!isDrawing || gameState.gameMode !== "draw") return;
+    if (!isDrawing || gameState.gameMode !== "challenge") return;
 
     isDrawing = false;
 
@@ -733,13 +781,13 @@ function setupDrawModeHandlers() {
   });
 }
 
-// Setup target mode click handlers
-function setupTargetModeHandlers() {
+// Setup challenge mode click handlers (no visual feedback - precise clicking)
+function setupChallengeHandlersPrecise() {
   const gridContainer = document.getElementById("grid-container");
 
   // Helper function to handle box click
   function handleBoxClick(box) {
-    if (gameState.gameMode !== "target") return;
+    if (gameState.gameMode !== "challenge" || gameState.challengeVisualFeedback) return;
     if (!box) return;
 
     // Get the first empty box
@@ -787,13 +835,13 @@ function setupTargetModeHandlers() {
       }, 150);
     } else {
       // Incorrect answer - show error feedback on all boxes from first empty to clicked box
-      boxesToClickedBox.forEach((b) => b.classList.add("draw-incorrect"));
+      boxesToClickedBox.forEach((b) => b.classList.add("feedback-incorrect"));
       setTimeout(() => {
-        boxesToClickedBox.forEach((b) => b.classList.remove("draw-incorrect"));
+        boxesToClickedBox.forEach((b) => b.classList.remove("feedback-incorrect"));
       }, 500);
 
       // Reset streak on wrong answer
-      if (gameState.gamePhase === "active" && gameState.currentStreak > 0) {
+      if (gameState.gameMode === "challenge" && gameState.currentStreak > 0) {
         counters.resetStreak();
         display.updateStreak();
       }
@@ -872,8 +920,8 @@ function getBoxesFromStartToHover(startBox, hoverBox) {
   return boxes;
 }
 
-// Unified collapse handler for both drag and draw modes
-// Returns the newly created row for drag mode to update currentRow
+// Unified collapse handler for both practice and challenge modes
+// Returns the newly created row for practice mode to update currentRow
 function handleCollapse() {
   if (gameState.totalMarbles % 1000 === 0 && gameState.totalMarbles > 0) {
     // Remove any regular rows that might exist
@@ -912,7 +960,7 @@ function handleCollapse() {
       gameState.currentRowIndex = firstRegularIndex;
     }
 
-    // Return the current row for drag mode
+    // Return the current row for practice mode
     return gameState.rows[gameState.currentRowIndex];
   } else if (gameState.totalMarbles % 100 === 0 && gameState.totalMarbles > 0) {
     // Show milestone prompt (suggest starting challenge)
@@ -936,7 +984,7 @@ function handleCollapse() {
       gameState.currentRowIndex = firstRegularIndex;
     }
 
-    // Return the current row for drag mode
+    // Return the current row for practice mode
     return gameState.rows[gameState.currentRowIndex];
   }
 
@@ -950,8 +998,8 @@ function checkForCollapses() {
 
 // Show milestone prompt when player reaches 100, 200, 300, etc. marbles
 function showMilestonePrompt(marbleCount) {
-  // Only show at multiples of 100, and only in drag mode (practice phase)
-  if (marbleCount % 100 !== 0 || gameState.gameMode !== "drag") {
+  // Only show at multiples of 100, and only in practice mode
+  if (marbleCount % 100 !== 0 || gameState.gameMode !== "practice") {
     return;
   }
 
@@ -1149,9 +1197,10 @@ function createMiniGrid(currentCap) {
   // Clear existing grid
   container.innerHTML = "";
 
-  // Update container class based on game mode for cursor styling
-  container.classList.remove("draw-mode", "target-mode");
-  container.classList.add(gameState.gameMode === "target" ? "target-mode" : "draw-mode");
+  // Update container class based on visual feedback for cursor styling
+  container.classList.remove("visual-feedback", "no-visual-feedback");
+  // Use visual feedback setting to determine cursor style in mini-grid
+  container.classList.add(gameState.challengeVisualFeedback ? "visual-feedback" : "no-visual-feedback");
 
   // Calculate number of rows needed for this level's cap (each row has 10 boxes)
   const rowsNeeded = Math.ceil(currentCap / 10);
@@ -1176,9 +1225,9 @@ function createMiniGrid(currentCap) {
     container.appendChild(row);
   }
 
-  // Setup handlers for mini-grid based on current game mode
-  if (gameState.gameMode === "target") {
-    setupMiniGridTargetMode();
+  // Setup handlers for mini-grid based on current challenge difficulty
+  if (!gameState.challengeVisualFeedback) {
+    setupMiniGridPreciseMode();
   } else {
     setupMiniGridDrawing();
   }
@@ -1313,8 +1362,8 @@ function setupMiniGridDrawing() {
   }, { passive: false });
 }
 
-// Setup target mode mechanism for mini-grid
-function setupMiniGridTargetMode() {
+// Setup precise mode mechanism for mini-grid (no visual feedback)
+function setupMiniGridPreciseMode() {
   const container = document.getElementById("mini-grid-container");
   if (!container) return;
 
@@ -1356,9 +1405,9 @@ function setupMiniGridTargetMode() {
       }, 150);
     } else {
       // Incorrect - show error feedback on clicked box
-      box.classList.add("draw-incorrect");
+      box.classList.add("feedback-incorrect");
       setTimeout(() => {
-        box.classList.remove("draw-incorrect");
+        box.classList.remove("feedback-incorrect");
       }, 500);
     }
   }
@@ -1382,7 +1431,7 @@ function setupMiniGridTargetMode() {
 }
 
 // Validate the mini-game answer
-function validateMiniGameAnswer(boxesFromTargetMode = null) {
+function validateMiniGameAnswer(boxesFromPreciseMode = null) {
   const modal = document.getElementById("mini-game-modal");
   const container = document.getElementById("mini-grid-container");
   if (!modal || !container) return;
@@ -1392,12 +1441,12 @@ function validateMiniGameAnswer(boxesFromTargetMode = null) {
   let drawnBoxes;
   let userAnswer;
 
-  if (boxesFromTargetMode) {
-    // Target mode: boxes are passed directly
-    drawnBoxes = boxesFromTargetMode;
+  if (boxesFromPreciseMode) {
+    // Precise mode: boxes are passed directly from click handler
+    drawnBoxes = boxesFromPreciseMode;
     userAnswer = drawnBoxes.length;
   } else {
-    // Draw mode: count ghost marbles
+    // Visual feedback mode: count ghost marbles
     const ghostMarbles = container.querySelectorAll(".ghost-marble");
     userAnswer = ghostMarbles.length;
     drawnBoxes = Array.from(ghostMarbles).map(ghost => ghost.parentElement);
@@ -1410,7 +1459,8 @@ function validateMiniGameAnswer(boxesFromTargetMode = null) {
   if (isCorrect) {
     // Show success feedback (green boxes with ghost marbles still visible)
     drawnBoxes.forEach((box) => {
-      box.classList.add("draw-correct");
+      box.classList.remove("target-box", "feedback-incorrect", "feedback-preview");
+      box.classList.add("feedback-correct");
     });
 
     if (modalContent) {
@@ -1429,7 +1479,7 @@ function validateMiniGameAnswer(boxesFromTargetMode = null) {
         if (ghost) ghost.remove();
 
         // Remove green feedback
-        box.classList.remove("draw-correct");
+        box.classList.remove("feedback-correct");
 
         // Create and add a real marble to this box
         const marble = document.createElement("div");
@@ -1501,7 +1551,7 @@ function validateMiniGameAnswer(boxesFromTargetMode = null) {
     }, 300);
   } else {
     // Show error feedback (red boxes)
-    drawnBoxes.forEach((box) => box.classList.add("draw-incorrect"));
+    drawnBoxes.forEach((box) => box.classList.add("feedback-incorrect"));
 
     // Add shake animation to modal
     if (modalContent) {
@@ -1563,7 +1613,7 @@ function validateMiniGameAnswer(boxesFromTargetMode = null) {
 function fillDrawnBoxes(boxes, isCorrect) {
   if (isCorrect) {
     // Show success feedback (green boxes with ghost marbles still visible)
-    boxes.forEach((box) => box.classList.add("draw-correct"));
+    boxes.forEach((box) => box.classList.add("feedback-correct"));
 
     // After brief delay, clear ghost marbles and add real marbles
     setTimeout(() => {
@@ -1574,54 +1624,18 @@ function fillDrawnBoxes(boxes, isCorrect) {
       });
 
       // Remove green feedback
-      boxes.forEach((box) => box.classList.remove("draw-correct"));
+      boxes.forEach((box) => box.classList.remove("feedback-correct"));
 
-      // Add real marbles
+      // Add real marbles using helper
       boxes.forEach((box) => {
-        // Create marble
-        const newMarble = document.createElement("div");
-        newMarble.className = "marble";
-
-        // Track marbles placed in active mode for level calculation
-        // Multiply by current streak (minimum 1x)
-        counters.incrementMarbles();
-        if (gameState.gamePhase === "active") {
-          const streakMultiplier = Math.max(1, gameState.currentStreak);
-          counters.addScore(streakMultiplier);
-        }
-        newMarble.textContent = gameState.totalMarbles;
-
-        // Get current row for color
-        const rowElement = box.parentElement;
-        const rowData = gameState.rows.find(
-          (r) => r.element.querySelector(".row") === rowElement,
-        );
-
-        if (rowData && rowData.color) {
-          newMarble.style.background = `radial-gradient(circle at 30% 30%, ${rowData.color.marbleLight}, ${rowData.color.marbleDark})`;
-        }
-
-        box.appendChild(newMarble);
-
-        if (rowData) {
-          rowData.marbleCount++;
-        }
-
+        createAndPlaceMarble(box);
         // Check for collapses after adding each marble
         checkForCollapses();
       });
 
       // Update displays - check if level changed for animation
       const previousLevel = gameState.currentLevel;
-      const newLevel = gameState.level;
-      gameState.currentLevel = newLevel;
-      const leveledUp = newLevel > previousLevel;
-
-      // Check if we've reached target mode level and should switch to target mode
-      if (leveledUp && newLevel === GAME_CONFIG.TARGET_MODE_LEVEL && gameState.gameMode === "draw") {
-        gameState.gameMode = "target";
-        updateModeUI();
-      }
+      const { newLevel, leveledUp } = checkForLevelUpAndDifficultyChange(previousLevel);
 
       display.updateMarbles();
       display.updateLevel(leveledUp);
@@ -1656,9 +1670,9 @@ function fillDrawnBoxes(boxes, isCorrect) {
         }
       }
 
-      // Update streak (only in active game phase)
+      // Update streak (only in challenge mode)
       let willShowMiniGame = false;
-      if (gameState.gamePhase === "active") {
+      if (gameState.gameMode === "challenge") {
         // Only increment streak if we haven't reached the requirement yet
         // This prevents going from 5/5 to 6/5, 7/5, etc.
         if (gameState.currentStreak < gameState.streakRequirement) {
@@ -1702,14 +1716,14 @@ function fillDrawnBoxes(boxes, isCorrect) {
     }, 300);
   } else {
     // Show error feedback
-    boxes.forEach((box) => box.classList.add("draw-incorrect"));
+    boxes.forEach((box) => box.classList.add("feedback-incorrect"));
 
     setTimeout(() => {
-      boxes.forEach((box) => box.classList.remove("draw-incorrect"));
+      boxes.forEach((box) => box.classList.remove("feedback-incorrect"));
     }, 500);
 
-    // Reset streak on wrong answer (only in active game phase)
-    if (gameState.gamePhase === "active" && gameState.currentStreak > 0) {
+    // Reset streak on wrong answer (only in challenge mode)
+    if (gameState.gameMode === "challenge" && gameState.currentStreak > 0) {
       counters.resetStreak();
       display.updateStreak();
     }
@@ -1744,8 +1758,8 @@ function ensureEmptyRowAvailable() {
 
 // Remove unnecessary empty rows (but keep enough for the current max target)
 function removeUnnecessaryEmptyRows() {
-  // Only applies to draw mode
-  if (gameState.gameMode !== "draw") {
+  // Only applies to challenge mode
+  if (gameState.gameMode !== "challenge") {
     return;
   }
 
@@ -1875,8 +1889,8 @@ function ensureEmptyRowBelowLastRow() {
     totalEmptyBoxes += row.boxes.filter(b => !b.hasChildNodes()).length;
   });
 
-  if (gameState.gameMode === "draw" || gameState.gameMode === "target") {
-    // In draw or target mode, ensure enough empty boxes for the max target
+  if (gameState.gameMode === "challenge") {
+    // In challenge mode, ensure enough empty boxes for the max target
     // Calculate max possible target for current level (same logic as generateTargetNumber)
     const level = gameState.level;
     const maxTargetForLevel = Math.min(9 + level, 30);
@@ -1887,7 +1901,7 @@ function ensureEmptyRowBelowLastRow() {
       totalEmptyBoxes += 10; // Each new row adds 10 empty boxes
     }
   } else {
-    // In drag mode, ensure at least one empty row exists for split visualization
+    // In practice mode, ensure at least one empty row exists for split visualization
     // This is needed so the second split indicator has a row to position at
     if (totalEmptyBoxes < 10) {
       addRow();
@@ -1895,16 +1909,18 @@ function ensureEmptyRowBelowLastRow() {
   }
 }
 
-// Start the challenge - one-way transition from drag to draw mode
+// Start the challenge - one-way transition from practice to challenge mode
 function startChallenge() {
-  // Can only start challenge from drag mode
-  if (gameState.gameMode !== "drag") {
+  // Can only start challenge from practice mode
+  if (gameState.gameMode !== "practice") {
     return;
   }
 
-  // Switch to draw mode and start active game phase
-  gameState.gameMode = "draw";
-  gameState.gamePhase = "active";
+  // Switch to challenge mode
+  gameState.gameMode = "challenge";
+
+  // Initialize challenge difficulty based on current level
+  updateChallengeDifficulty();
 
   // Reset lives to max when starting challenge
   counters.resetLives();
@@ -1935,7 +1951,7 @@ function updateModeUI() {
 
   // Update practice mode class on game container
   if (gameContainer) {
-    if (gameState.gamePhase === "practice") {
+    if (gameState.gameMode === "practice") {
       gameContainer.classList.add("practice-mode");
     } else {
       gameContainer.classList.remove("practice-mode");
@@ -1947,18 +1963,21 @@ function updateModeUI() {
     box.classList.remove("target-box");
   });
 
-  // Update cursor style based on mode
+  // Update cursor style based on mode and difficulty
   if (gridContainer) {
-    gridContainer.classList.remove("draw-mode", "target-mode");
-    if (gameState.gameMode === "draw") {
-      gridContainer.classList.add("draw-mode");
-    } else if (gameState.gameMode === "target") {
-      gridContainer.classList.add("target-mode");
+    gridContainer.classList.remove("challenge-mode", "visual-feedback", "no-visual-feedback");
+    if (gameState.gameMode === "challenge") {
+      gridContainer.classList.add("challenge-mode");
+      if (gameState.challengeVisualFeedback) {
+        gridContainer.classList.add("visual-feedback");
+      } else {
+        gridContainer.classList.add("no-visual-feedback");
+      }
     }
   }
 
-  if (gameState.gameMode === "draw" || gameState.gameMode === "target") {
-    // Draw or Target mode (active phase)
+  if (gameState.gameMode === "challenge") {
+    // Challenge mode (active phase)
     // Hide marble group container
     if (marbleGroupContainer) marbleGroupContainer.style.display = "none";
 
@@ -1968,18 +1987,18 @@ function updateModeUI() {
     // Show target display
     if (targetDisplay) targetDisplay.style.display = "flex";
 
-    // Hide challenge button with transition (can't go back to drag mode)
+    // Hide challenge button with transition (can't go back to practice mode)
     if (modeControls) modeControls.classList.add("hidden");
 
-    // Highlight the first empty box (only in draw mode, not target)
-    if (gameState.gameMode === "draw") {
+    // Highlight the first empty box (only when visual feedback is enabled)
+    if (gameState.challengeVisualFeedback) {
       const firstEmptyBox = getFirstEmptyBox();
       if (firstEmptyBox) {
         firstEmptyBox.box.classList.add("target-box");
       }
     }
   } else {
-    // Drag mode (practice phase)
+    // Practice mode
     // Show marble group container
     if (marbleGroupContainer) marbleGroupContainer.style.display = "flex";
 
@@ -2001,14 +2020,16 @@ function updateModeUI() {
 
   // Update mode indicator icon and label
   if (modeIcon && modeLabel) {
-    if (gameState.gameMode === "drag") {
+    if (gameState.gameMode === "practice") {
       modeIcon.textContent = "🖐️"; // Hand for practice mode
       modeLabel.textContent = "Practice Mode";
-    } else if (gameState.gameMode === "draw") {
-      modeIcon.textContent = "🎯"; // Target for challenge mode
-      modeLabel.textContent = "Challenge Mode";
-    } else if (gameState.gameMode === "target") {
-      modeIcon.textContent = "⚡"; // Lightning for harder challenge mode
+    } else if (gameState.gameMode === "challenge") {
+      // Show different icon based on difficulty (visual feedback)
+      if (gameState.challengeVisualFeedback) {
+        modeIcon.textContent = "🎯"; // Target for easier challenge
+      } else {
+        modeIcon.textContent = "⚡"; // Lightning for harder challenge
+      }
       modeLabel.textContent = "Challenge Mode";
     }
   }
@@ -2032,8 +2053,8 @@ function showGameOver() {
 export {
   createMarblesInGroup,
   setupDragHandlers,
-  setupDrawModeHandlers,
-  setupTargetModeHandlers,
+  setupChallengeHandlers,
+  setupChallengeHandlersPrecise,
   updateModeUI,
   startChallenge,
   showMiniGame,

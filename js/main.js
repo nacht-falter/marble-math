@@ -2,8 +2,8 @@ import { addRow } from "./grid.js";
 import {
   createMarblesInGroup,
   setupDragHandlers,
-  setupDrawModeHandlers,
-  setupTargetModeHandlers,
+  setupChallengeHandlers,
+  setupChallengeHandlersPrecise,
   startChallenge,
   updateModeUI,
 } from "./modes.js";
@@ -14,10 +14,10 @@ const gameState = {
   rows: [],
   totalMarbles: 0,
   currentRowIndex: 0,
-  gameMode: "drag", // 'drag', 'draw', or 'target'
+  gameMode: "practice", // 'practice' or 'challenge'
+  challengeVisualFeedback: true, // In challenge mode: show ghost marbles and allow adjustments
   classicDrawMode: false, // false = improved (click anywhere), true = classic (must start at first box)
   currentTargetNumber: 0,
-  gamePhase: "practice", // 'practice' or 'active'
   currentStreak: 0,
   miniGamesUnlocked: 0, // Track how many mini-games have been unlocked
   milestonesShown: [], // Track which milestone prompts have been shown (100, 200, etc.)
@@ -106,13 +106,13 @@ const counters = {
 
   // Lives operations
   loseLife() {
-    if (gameState.gamePhase === "active" && gameState.currentLives > 0) {
+    if (gameState.gameMode === "challenge" && gameState.currentLives > 0) {
       gameState.currentLives--;
     }
   },
 
   gainLife() {
-    if (gameState.gamePhase === "active" && gameState.currentLives < gameState.maxLives) {
+    if (gameState.gameMode === "challenge" && gameState.currentLives < gameState.maxLives) {
       gameState.currentLives++;
     }
   },
@@ -222,7 +222,7 @@ const display = {
 
     // Always show level display in active mode
     if (levelDisplay) {
-      if (gameState.gamePhase === "active") {
+      if (gameState.gameMode === "challenge") {
         levelDisplay.classList.remove("hidden");
       } else {
         levelDisplay.classList.add("hidden");
@@ -275,7 +275,7 @@ const display = {
 
     // Always show streak counter in active mode
     if (streakCounter) {
-      if (gameState.gamePhase === "active") {
+      if (gameState.gameMode === "challenge") {
         streakCounter.classList.remove("hidden");
       } else {
         streakCounter.classList.add("hidden");
@@ -290,7 +290,7 @@ const display = {
     // Always show lives display, but disable in practice mode
     livesDisplay.classList.remove("hidden");
 
-    if (gameState.gamePhase === "active") {
+    if (gameState.gameMode === "challenge") {
       livesDisplay.classList.remove("disabled");
     } else {
       livesDisplay.classList.add("disabled");
@@ -319,7 +319,7 @@ const display = {
     });
 
     // Animate only the heart that changed (only in active mode)
-    if (animate && gameState.gamePhase === "active" && changedHeartIndex !== -1) {
+    if (animate && gameState.gameMode === "challenge" && changedHeartIndex !== -1) {
       const changedHeart = hearts[changedHeartIndex];
       changedHeart.classList.add("bump");
       setTimeout(() => {
@@ -352,8 +352,7 @@ function initGame() {
 
   gameState.rows = [];
   gameState.currentRowIndex = 0;
-  gameState.gameMode = "drag";
-  gameState.gamePhase = "practice";
+  gameState.gameMode = "practice";
   gameState.currentTargetNumber = 0;
   gameState.milestonesShown = [];
 
@@ -383,8 +382,8 @@ function initGame() {
 document.addEventListener("DOMContentLoaded", () => {
   initGame();
   setupDragHandlers();
-  setupDrawModeHandlers();
-  setupTargetModeHandlers();
+  setupChallengeHandlers();
+  setupChallengeHandlersPrecise();
 
   // Setup reset button
   const resetBtn = document.getElementById("reset-btn");
