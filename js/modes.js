@@ -646,15 +646,16 @@ function setupChallengeHandlers() {
   let isDrawing = false;
   let drawStartBox = null;
   let lastRowAddY = -Infinity; // Track Y position where we last added a row
+  let lastHoveredBox = null; // Track which box we last hovered over
 
   // Helper function to start drawing
   function startDrawing(box) {
     if (gameState.gameMode !== "challenge" || !gameState.challengeVisualFeedback) return;
     if (!box) return;
 
-    // Check if this is an empty box
-    const hasChildren = box.hasChildNodes();
-    if (hasChildren) return;
+    // Check if this box has a real marble (ghost marbles don't count)
+    const hasRealMarble = box.querySelector(".marble:not(.ghost-marble)");
+    if (hasRealMarble) return;
 
     const firstEmptyBox = getFirstEmptyBox();
     if (!firstEmptyBox) return;
@@ -676,6 +677,13 @@ function setupChallengeHandlers() {
     boxesToFill.forEach((b) => addGhostMarble(b));
   }
 
+  // Clear ghost marbles when mouse leaves the grid
+  gridContainer.addEventListener("mouseleave", () => {
+    if (!isDrawing) {
+      clearAllGhostMarbles();
+    }
+  });
+
   // Mouse down handler
   gridContainer.addEventListener("mousedown", (e) => {
     const box = e.target.closest(".box");
@@ -694,14 +702,40 @@ function setupChallengeHandlers() {
     }
   }, { passive: false });
 
-  // Helper function for draw move
+  // Helper function for draw move and hover preview
   function handleDrawMove(box, clientY) {
-    if (!isDrawing || gameState.gameMode !== "challenge" || !gameState.challengeVisualFeedback) return;
+    if (gameState.gameMode !== "challenge" || !gameState.challengeVisualFeedback) return;
 
-    if (!box) return;
+    // Only update if the box changed (avoid unnecessary updates on every pixel move)
+    if (box === lastHoveredBox) return;
+    lastHoveredBox = box;
+
+    // If hovering over gap between boxes, keep ghost marbles visible (don't clear)
+    if (!box) {
+      return;
+    }
+
+    // Check if this box has a real marble (not just ghost marbles)
+    const hasRealMarble = box.querySelector(".marble:not(.ghost-marble)");
+    if (hasRealMarble) {
+      if (!isDrawing) {
+        clearAllGhostMarbles();
+      }
+      return;
+    }
+
+    // Determine start box based on whether we're drawing or just hovering
+    let startBox;
+    if (isDrawing) {
+      startBox = drawStartBox;
+    } else {
+      const firstEmptyBox = getFirstEmptyBox();
+      if (!firstEmptyBox) return;
+      startBox = firstEmptyBox.box;
+    }
 
     // Get all empty boxes from start to current hover
-    const boxesToFill = getBoxesFromStartToHover(drawStartBox, box);
+    const boxesToFill = getBoxesFromStartToHover(startBox, box);
 
     // Clear all existing ghost marbles
     clearAllGhostMarbles();
@@ -1240,11 +1274,21 @@ function setupMiniGridDrawing() {
 
   let isDrawing = false;
   let drawStartBox = null;
+  let lastHoveredBox = null;
 
   // Get all mini boxes in order
   function getAllMiniBoxes() {
     const rows = Array.from(container.querySelectorAll(".mini-row"));
     return rows.flatMap(row => Array.from(row.querySelectorAll(".box")));
+  }
+
+  // Get first empty box (ignoring ghost marbles)
+  function getFirstEmptyMiniBox() {
+    const allBoxes = getAllMiniBoxes();
+    return allBoxes.find(b => {
+      const hasRealMarble = b.querySelector(".marble:not(.ghost-marble)");
+      return !hasRealMarble;
+    });
   }
 
   // Get boxes from start to hover (same logic as main grid)
@@ -1261,8 +1305,9 @@ function setupMiniGridDrawing() {
     const boxes = [];
     for (let i = minIndex; i <= maxIndex; i++) {
       const box = allBoxes[i];
-      // Only include empty boxes
-      if (!box.hasChildNodes() || box.querySelector(".ghost-marble")) {
+      // Only include boxes without real marbles (ghost marbles are ok)
+      const hasRealMarble = box.querySelector(".marble:not(.ghost-marble)");
+      if (!hasRealMarble) {
         boxes.push(box);
       }
     }
@@ -1273,11 +1318,11 @@ function setupMiniGridDrawing() {
   function startDrawing(box) {
     if (!box) return;
 
-    // Check if empty
-    if (box.hasChildNodes()) return;
+    // Check if this box has a real marble (ghost marbles don't count)
+    const hasRealMarble = box.querySelector(".marble:not(.ghost-marble)");
+    if (hasRealMarble) return;
 
-    const allBoxes = getAllMiniBoxes();
-    const firstEmptyBox = allBoxes.find(b => !b.hasChildNodes());
+    const firstEmptyBox = getFirstEmptyMiniBox();
     if (!firstEmptyBox) return;
 
     if (gameState.classicDrawMode) {
@@ -1297,9 +1342,33 @@ function setupMiniGridDrawing() {
   }
 
   function handleDrawMove(box) {
-    if (!isDrawing || !box) return;
+    // Only update if the box changed
+    if (box === lastHoveredBox) return;
+    lastHoveredBox = box;
 
-    const boxesToFill = getMiniBoxesFromStartToHover(drawStartBox, box);
+    // If hovering over gap between boxes, keep ghost marbles visible
+    if (!box) return;
+
+    // Check if this box has a real marble (not just ghost marbles)
+    const hasRealMarble = box.querySelector(".marble:not(.ghost-marble)");
+    if (hasRealMarble) {
+      if (!isDrawing) {
+        clearAllGhostMarbles();
+      }
+      return;
+    }
+
+    // Determine start box based on whether we're drawing or just hovering
+    let startBox;
+    if (isDrawing) {
+      startBox = drawStartBox;
+    } else {
+      const firstEmptyBox = getFirstEmptyMiniBox();
+      if (!firstEmptyBox) return;
+      startBox = firstEmptyBox;
+    }
+
+    const boxesToFill = getMiniBoxesFromStartToHover(startBox, box);
     clearAllGhostMarbles(); // Reuse main grid function
     boxesToFill.forEach(b => addGhostMarble(b)); // Reuse main grid function
   }
@@ -1314,6 +1383,13 @@ function setupMiniGridDrawing() {
     drawStartBox = null;
   }
 
+  // Clear ghost marbles when mouse leaves the mini-grid
+  container.addEventListener("mouseleave", () => {
+    if (!isDrawing) {
+      clearAllGhostMarbles();
+    }
+  });
+
   // Mouse events
   container.addEventListener("mousedown", (e) => {
     const box = e.target.closest(".box");
@@ -1324,9 +1400,11 @@ function setupMiniGridDrawing() {
   });
 
   document.addEventListener("mousemove", (e) => {
-    if (!isDrawing) return;
     const box = e.target?.closest ? e.target.closest(".box") : null;
-    handleDrawMove(box);
+    // Check if box is within the mini-grid container
+    if (box && container.contains(box)) {
+      handleDrawMove(box);
+    }
   });
 
   document.addEventListener("mouseup", () => {

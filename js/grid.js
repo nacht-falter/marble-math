@@ -127,7 +127,11 @@ function getFirstEmptyBox() {
       continue;
     }
 
-    const emptyBoxIndex = row.boxes.findIndex((box) => !box.hasChildNodes());
+    // Find first box without a real marble (ghost marbles don't count as filled)
+    const emptyBoxIndex = row.boxes.findIndex((box) => {
+      const hasRealMarble = box.querySelector(".marble:not(.ghost-marble)");
+      return !hasRealMarble;
+    });
 
     if (emptyBoxIndex !== -1) {
       return {
