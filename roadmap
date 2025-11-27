@@ -24,7 +24,7 @@
 - [x] Increase difficulty in draw mode by increasing number size.
 - [x] New "target" game mode, where the player has to click on the correct box instead of drawing the correct amount of marbles. This is an advanced mode, since it lacks the visual feedback.
 - [x] Update instructions.
-- [ ] Balance streak multipliers, adjust streak system (5 correct answers to trigger mini game, no scaling).
+- [x] Balance streak multipliers, adjust streak system (10 correct answers to trigger mini game, no scaling).
 - [x] Introduce some losing condition for game over (e.g. count mistakes, introduce lives, lives could be regained on milestones or with mini games).
 - [x] Improve draw mode: allow clicking any empty box (not just first) and show ghost marbles immediately for better motor control accessibility.
 - [ ] Division mini game problems are too hard.

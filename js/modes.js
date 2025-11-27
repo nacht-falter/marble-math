@@ -14,6 +14,13 @@ import {
 import { GAME_CONFIG } from "./config.js";
 
 // ============================================
+// Module-level cleanup functions
+// ============================================
+let challengeCleanup = null;
+let miniGridDrawingCleanup = null;
+let miniGridPreciseCleanup = null;
+
+// ============================================
 // Helper Functions for Marble Placement
 // ============================================
 
@@ -642,6 +649,12 @@ function updateTargetDisplay() {
 
 // Setup challenge mode handlers (with visual feedback - ghost marbles while clicking)
 function setupChallengeHandlers() {
+  // Clean up previous handlers if they exist
+  if (challengeCleanup) {
+    challengeCleanup();
+    challengeCleanup = null;
+  }
+
   const gridContainer = document.getElementById("grid-container");
   let isDrawing = false;
   let drawStartBox = null;
@@ -654,8 +667,7 @@ function setupChallengeHandlers() {
     if (!box) return;
 
     // Check if this box has a real marble (ghost marbles don't count)
-    const hasRealMarble = box.querySelector(".marble:not(.ghost-marble)");
-    if (hasRealMarble) return;
+    if (hasRealMarble(box)) return;
 
     const firstEmptyBox = getFirstEmptyBox();
     if (!firstEmptyBox) return;
@@ -677,22 +689,20 @@ function setupChallengeHandlers() {
     boxesToFill.forEach((b) => addGhostMarble(b));
   }
 
-  // Clear ghost marbles when mouse leaves the grid
-  gridContainer.addEventListener("mouseleave", () => {
+  // Event handlers (named functions for cleanup)
+  const handleMouseLeave = () => {
     if (!isDrawing) {
       clearAllGhostMarbles();
     }
-  });
+  };
 
-  // Mouse down handler
-  gridContainer.addEventListener("mousedown", (e) => {
+  const handleMouseDown = (e) => {
     const box = e.target.closest(".box");
     startDrawing(box);
     e.preventDefault();
-  });
+  };
 
-  // Touch start handler
-  gridContainer.addEventListener("touchstart", (e) => {
+  const handleTouchStart = (e) => {
     if (e.touches.length === 1) {
       const touch = e.touches[0];
       const element = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -700,7 +710,11 @@ function setupChallengeHandlers() {
       startDrawing(box);
       e.preventDefault();
     }
-  }, { passive: false });
+  };
+
+  gridContainer.addEventListener("mouseleave", handleMouseLeave);
+  gridContainer.addEventListener("mousedown", handleMouseDown);
+  gridContainer.addEventListener("touchstart", handleTouchStart, { passive: false });
 
   // Helper function for draw move and hover preview
   function handleDrawMove(box, clientY) {
@@ -716,8 +730,7 @@ function setupChallengeHandlers() {
     }
 
     // Check if this box has a real marble (not just ghost marbles)
-    const hasRealMarble = box.querySelector(".marble:not(.ghost-marble)");
-    if (hasRealMarble) {
+    if (hasRealMarble(box)) {
       if (!isDrawing) {
         clearAllGhostMarbles();
       }
@@ -744,14 +757,12 @@ function setupChallengeHandlers() {
     boxesToFill.forEach((b) => addGhostMarble(b));
   }
 
-  // Mouse move handler
-  document.addEventListener("mousemove", (e) => {
+  const handleMouseMove = (e) => {
     const box = e.target?.closest ? e.target.closest(".box") : null;
     handleDrawMove(box, e.clientY);
-  });
+  };
 
-  // Touch move handler
-  document.addEventListener("touchmove", (e) => {
+  const handleTouchMove = (e) => {
     if (e.touches.length === 1) {
       const touch = e.touches[0];
       const element = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -759,7 +770,10 @@ function setupChallengeHandlers() {
       handleDrawMove(box, touch.clientY);
       e.preventDefault(); // Prevent scrolling while drawing
     }
-  }, { passive: false });
+  };
+
+  document.addEventListener("mousemove", handleMouseMove);
+  document.addEventListener("touchmove", handleTouchMove, { passive: false });
 
   // Helper function to end drawing
   function endDrawing() {
@@ -804,15 +818,27 @@ function setupChallengeHandlers() {
     drawStartBox = null;
   }
 
-  // Mouse up handler
-  document.addEventListener("mouseup", () => {
+  const handleMouseUp = () => {
     endDrawing();
-  });
+  };
 
-  // Touch end handler
-  document.addEventListener("touchend", () => {
+  const handleTouchEnd = () => {
     endDrawing();
-  });
+  };
+
+  document.addEventListener("mouseup", handleMouseUp);
+  document.addEventListener("touchend", handleTouchEnd);
+
+  // Store cleanup function
+  challengeCleanup = () => {
+    gridContainer.removeEventListener("mouseleave", handleMouseLeave);
+    gridContainer.removeEventListener("mousedown", handleMouseDown);
+    gridContainer.removeEventListener("touchstart", handleTouchStart);
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("touchmove", handleTouchMove);
+    document.removeEventListener("mouseup", handleMouseUp);
+    document.removeEventListener("touchend", handleTouchEnd);
+  };
 }
 
 // Setup challenge mode click handlers (no visual feedback - precise clicking)
@@ -907,6 +933,10 @@ function setupChallengeHandlersPrecise() {
   }, { passive: false });
 }
 
+// ============================================
+// Shared Drawing Helper Functions
+// ============================================
+
 // Add a ghost marble to a box
 function addGhostMarble(box) {
   if (!box || box.querySelector(".ghost-marble")) return;
@@ -921,12 +951,34 @@ function clearAllGhostMarbles() {
   document.querySelectorAll(".ghost-marble").forEach((ghost) => ghost.remove());
 }
 
+// Check if box has a real marble (not just ghost marbles)
+function hasRealMarble(box) {
+  return box && box.querySelector(".marble:not(.ghost-marble)");
+}
+
+// Get boxes in range between startBox and endBox (only empty boxes)
+function getBoxesInRange(allBoxes, startBox, endBox) {
+  const startIndex = allBoxes.indexOf(startBox);
+  const endIndex = allBoxes.indexOf(endBox);
+  if (startIndex === -1 || endIndex === -1) return [];
+
+  const minIndex = Math.min(startIndex, endIndex);
+  const maxIndex = Math.max(startIndex, endIndex);
+
+  const boxes = [];
+  for (let i = minIndex; i <= maxIndex; i++) {
+    if (!hasRealMarble(allBoxes[i])) {
+      boxes.push(allBoxes[i]);
+    }
+  }
+  return boxes;
+}
+
 // Get all empty boxes from start to hover position
 function getBoxesFromStartToHover(startBox, hoverBox) {
-  const boxes = [];
-  if (!startBox || !hoverBox) return boxes;
+  if (!startBox || !hoverBox) return [];
 
-  // Get all boxes in order
+  // Get all boxes in order (main grid specific: from gameState.rows, excluding collapsed)
   const allBoxes = [];
   gameState.rows.forEach((row) => {
     if (!row.isCollapsed && row.boxes) {
@@ -934,24 +986,8 @@ function getBoxesFromStartToHover(startBox, hoverBox) {
     }
   });
 
-  const startIndex = allBoxes.indexOf(startBox);
-  const hoverIndex = allBoxes.indexOf(hoverBox);
-
-  if (startIndex === -1 || hoverIndex === -1) return boxes;
-
-  // Get all boxes from start to hover (inclusive)
-  const minIndex = Math.min(startIndex, hoverIndex);
-  const maxIndex = Math.max(startIndex, hoverIndex);
-
-  for (let i = minIndex; i <= maxIndex; i++) {
-    const box = allBoxes[i];
-    // Only include empty boxes
-    if (!box.hasChildNodes() || box.querySelector(".ghost-marble")) {
-      boxes.push(box);
-    }
-  }
-
-  return boxes;
+  // Use shared helper for range-finding logic
+  return getBoxesInRange(allBoxes, startBox, hoverBox);
 }
 
 // Unified collapse handler for both practice and challenge modes
@@ -1197,6 +1233,9 @@ function showMiniGame() {
   const modal = document.getElementById("mini-game-modal");
   if (!modal) return;
 
+  // Clear any ghost marbles from main grid
+  clearAllGhostMarbles();
+
   // Generate math problem based on difficulty
   const level = gameState.level;
   const problem = generateMathProblem(level);
@@ -1269,6 +1308,12 @@ function createMiniGrid(currentCap) {
 
 // Setup drawing mechanism for mini-grid (reusing main grid logic)
 function setupMiniGridDrawing() {
+  // Clean up previous handlers if they exist
+  if (miniGridDrawingCleanup) {
+    miniGridDrawingCleanup();
+    miniGridDrawingCleanup = null;
+  }
+
   const container = document.getElementById("mini-grid-container");
   if (!container) return;
 
@@ -1285,42 +1330,21 @@ function setupMiniGridDrawing() {
   // Get first empty box (ignoring ghost marbles)
   function getFirstEmptyMiniBox() {
     const allBoxes = getAllMiniBoxes();
-    return allBoxes.find(b => {
-      const hasRealMarble = b.querySelector(".marble:not(.ghost-marble)");
-      return !hasRealMarble;
-    });
+    return allBoxes.find(b => !hasRealMarble(b));
   }
 
   // Get boxes from start to hover (same logic as main grid)
   function getMiniBoxesFromStartToHover(startBox, hoverBox) {
     const allBoxes = getAllMiniBoxes();
-    const startIndex = allBoxes.indexOf(startBox);
-    const hoverIndex = allBoxes.indexOf(hoverBox);
-
-    if (startIndex === -1 || hoverIndex === -1) return [];
-
-    const minIndex = Math.min(startIndex, hoverIndex);
-    const maxIndex = Math.max(startIndex, hoverIndex);
-
-    const boxes = [];
-    for (let i = minIndex; i <= maxIndex; i++) {
-      const box = allBoxes[i];
-      // Only include boxes without real marbles (ghost marbles are ok)
-      const hasRealMarble = box.querySelector(".marble:not(.ghost-marble)");
-      if (!hasRealMarble) {
-        boxes.push(box);
-      }
-    }
-
-    return boxes;
+    // Use shared helper for range-finding logic
+    return getBoxesInRange(allBoxes, startBox, hoverBox);
   }
 
   function startDrawing(box) {
     if (!box) return;
 
     // Check if this box has a real marble (ghost marbles don't count)
-    const hasRealMarble = box.querySelector(".marble:not(.ghost-marble)");
-    if (hasRealMarble) return;
+    if (hasRealMarble(box)) return;
 
     const firstEmptyBox = getFirstEmptyMiniBox();
     if (!firstEmptyBox) return;
@@ -1350,8 +1374,7 @@ function setupMiniGridDrawing() {
     if (!box) return;
 
     // Check if this box has a real marble (not just ghost marbles)
-    const hasRealMarble = box.querySelector(".marble:not(.ghost-marble)");
-    if (hasRealMarble) {
+    if (hasRealMarble(box)) {
       if (!isDrawing) {
         clearAllGhostMarbles();
       }
@@ -1383,36 +1406,31 @@ function setupMiniGridDrawing() {
     drawStartBox = null;
   }
 
-  // Clear ghost marbles when mouse leaves the mini-grid
-  container.addEventListener("mouseleave", () => {
+  // Event handlers (named functions for cleanup)
+  const handleMouseLeave = () => {
     if (!isDrawing) {
       clearAllGhostMarbles();
     }
-  });
+  };
 
-  // Mouse events
-  container.addEventListener("mousedown", (e) => {
+  const handleMouseDown = (e) => {
     const box = e.target.closest(".box");
     if (box) {
       startDrawing(box);
       e.preventDefault();
     }
-  });
+  };
 
-  document.addEventListener("mousemove", (e) => {
+  const handleMouseMove = (e) => {
     const box = e.target?.closest ? e.target.closest(".box") : null;
-    // Check if box is within the mini-grid container
-    if (box && container.contains(box)) {
-      handleDrawMove(box);
-    }
-  });
+    handleDrawMove(box);
+  };
 
-  document.addEventListener("mouseup", () => {
+  const handleMouseUp = () => {
     endDrawing();
-  });
+  };
 
-  // Touch events
-  container.addEventListener("touchstart", (e) => {
+  const handleTouchStart = (e) => {
     if (e.touches.length === 1) {
       const touch = e.touches[0];
       const element = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -1422,9 +1440,9 @@ function setupMiniGridDrawing() {
         e.preventDefault();
       }
     }
-  }, { passive: false });
+  };
 
-  document.addEventListener("touchmove", (e) => {
+  const handleTouchMove = (e) => {
     if (!isDrawing) return;
     if (e.touches.length === 1) {
       const touch = e.touches[0];
@@ -1433,15 +1451,40 @@ function setupMiniGridDrawing() {
       handleDrawMove(box);
       e.preventDefault();
     }
-  }, { passive: false });
+  };
 
-  document.addEventListener("touchend", () => {
+  const handleTouchEnd = () => {
     endDrawing();
-  }, { passive: false });
+  };
+
+  container.addEventListener("mouseleave", handleMouseLeave);
+  container.addEventListener("mousedown", handleMouseDown);
+  document.addEventListener("mousemove", handleMouseMove);
+  document.addEventListener("mouseup", handleMouseUp);
+  container.addEventListener("touchstart", handleTouchStart, { passive: false });
+  document.addEventListener("touchmove", handleTouchMove, { passive: false });
+  document.addEventListener("touchend", handleTouchEnd, { passive: false });
+
+  // Store cleanup function
+  miniGridDrawingCleanup = () => {
+    container.removeEventListener("mouseleave", handleMouseLeave);
+    container.removeEventListener("mousedown", handleMouseDown);
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseup", handleMouseUp);
+    container.removeEventListener("touchstart", handleTouchStart);
+    document.removeEventListener("touchmove", handleTouchMove);
+    document.removeEventListener("touchend", handleTouchEnd);
+  };
 }
 
 // Setup precise mode mechanism for mini-grid (no visual feedback)
 function setupMiniGridPreciseMode() {
+  // Clean up previous handlers if they exist
+  if (miniGridPreciseCleanup) {
+    miniGridPreciseCleanup();
+    miniGridPreciseCleanup = null;
+  }
+
   const container = document.getElementById("mini-grid-container");
   if (!container) return;
 
@@ -1490,14 +1533,13 @@ function setupMiniGridPreciseMode() {
     }
   }
 
-  // Mouse click handler
-  container.addEventListener("click", (e) => {
+  // Event handlers (named functions for cleanup)
+  const handleClick = (e) => {
     const box = e.target.closest(".box");
     handleBoxClick(box);
-  });
+  };
 
-  // Touch handler
-  container.addEventListener("touchend", (e) => {
+  const handleTouchEnd = (e) => {
     if (e.changedTouches.length === 1) {
       const touch = e.changedTouches[0];
       const element = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -1505,7 +1547,16 @@ function setupMiniGridPreciseMode() {
       handleBoxClick(box);
       e.preventDefault();
     }
-  }, { passive: false });
+  };
+
+  container.addEventListener("click", handleClick);
+  container.addEventListener("touchend", handleTouchEnd, { passive: false });
+
+  // Store cleanup function
+  miniGridPreciseCleanup = () => {
+    container.removeEventListener("click", handleClick);
+    container.removeEventListener("touchend", handleTouchEnd);
+  };
 }
 
 // Validate the mini-game answer
@@ -1612,17 +1663,20 @@ function validateMiniGameAnswer(boxesFromPreciseMode = null) {
           // Generate new target number after mini game closes
           generateTargetNumber();
 
-          // Update target-box highlight for next empty box
-          document.querySelectorAll(".box.target-box").forEach((box) => {
-            box.classList.remove("target-box");
-          });
-          const firstEmptyBox = getFirstEmptyBox();
-          if (firstEmptyBox) {
-            firstEmptyBox.box.classList.add("target-box");
-          }
-
           setTimeout(() => {
+            // Clear any ghost marbles from main grid before placing marbles
+            clearAllGhostMarbles();
+
             placeMarbleGroupInGrid(correctAnswer);
+
+            // Update target-box highlight AFTER placing marbles
+            document.querySelectorAll(".box.target-box").forEach((box) => {
+              box.classList.remove("target-box");
+            });
+            const firstEmptyBox = getFirstEmptyBox();
+            if (firstEmptyBox) {
+              firstEmptyBox.box.classList.add("target-box");
+            }
           }, 100);
         }, 600);
       }, 100);
