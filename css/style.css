@@ -1457,14 +1457,6 @@ button:hover {
   opacity: 0;
 }
 
-.modal-wrapper {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
 .modal-content {
   background-color: white;
   padding: 30px;
@@ -1630,13 +1622,14 @@ button:hover {
 
 /* Mini-game styles */
 .mini-game-content {
+  position: relative;
+  z-index: 1;
   background: linear-gradient(135deg, var(--purple-lightest) 0%, var(--purple-dark) 100%);
   padding: 30px;
   border-radius: 16px;
   border: 3px solid var(--purple-medium);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   max-width: 90vw;
-  width: 100%;
   text-align: center;
   transition: box-shadow 0.3s ease-out;
 }
@@ -1717,11 +1710,8 @@ button:hover {
 .mini-grid-container {
   display: flex;
   flex-direction: column;
-  gap: 5px; /* Match main grid spacing */
-  margin: 1rem auto 0;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 100%;
+  gap: 5px;
+  margin-top: 1rem;
   user-select: none;
 }
 
@@ -1798,24 +1788,46 @@ button:hover {
 /* Responsive adjustments */
 /* Mobile phones */
 @media (max-width: 480px) {
+  /* Thinner borders on very small screens */
+  .box,
+  .mini-box {
+    border-width: 1px;
+  }
+
+  .box.target-box,
+  .box.feedback-preview,
+  .box.feedback-correct,
+  .box.feedback-incorrect {
+    border-width: 2px;
+  }
+
+  /* Larger boxes and marbles on small screens to use gained space */
+  .mini-box {
+    width: 8.5vw;
+    height: 8.5vw;
+  }
+
+  .mini-box .marble {
+    width: 7vw;
+    height: 7vw;
+  }
+
+  /* Use almost full viewport width on small screens */
+  .modal {
+    padding: 0 4px;
+  }
+
   .mini-game-content {
-    max-width: 97vw;
-    padding: 15px 1vw;
+    max-width: none;
+    width: 100%;
+    padding: 12px 6px;
+    border-radius: 8px;
+    border-width: 2px;
   }
 
-  .mini-game-problem {
-    font-size: 1.5rem;
-    margin: 0.5rem 0;
-  }
-
-  .mini-game-instruction {
-    font-size: 0.85rem;
-    margin-bottom: 0.25rem;
-  }
-
-  .mini-grid-container {
-    padding: 0.5rem;
-    margin: 0.5rem auto;
+  .mini-grid-container,
+  .mini-row {
+    gap: 3px;
   }
 
   .instructions-modal-content {
