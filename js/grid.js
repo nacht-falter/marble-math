@@ -55,19 +55,21 @@ function addRow(animate = true) {
 
   const rowData = createRow(startValue);
 
-  // Last - make the DOM change
-  gameState.rows.push(rowData);
-  gridContainer.appendChild(rowData.element);
-
   if (!animate) {
     // No animation - just show the row immediately
+    gameState.rows.push(rowData);
+    gridContainer.appendChild(rowData.element);
     rowData.element.classList.add("fading-in");
     return rowData;
   }
 
-  // FLIP animation: First - record positions of existing rows before change
-  const existingRowElements = Array.from(gridContainer.querySelectorAll('.row-wrapper:not(:last-child)'));
+  // FLIP animation: First - record positions of existing rows BEFORE adding new row
+  const existingRowElements = Array.from(gridContainer.querySelectorAll('.row-wrapper'));
   const firstPositions = existingRowElements.map(el => el.getBoundingClientRect().top);
+
+  // Last - make the DOM change
+  gameState.rows.push(rowData);
+  gridContainer.appendChild(rowData.element);
 
   // Start with new row invisible (using !important to override animation)
   rowData.element.style.setProperty('opacity', '0', 'important');
