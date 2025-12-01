@@ -14,6 +14,12 @@ import {
 import { GAME_CONFIG } from "./config.js";
 
 // ============================================
+// Animation constants
+// ============================================
+const MARBLE_STAGGER_DELAY = 30; // ms between each marble in staggered animation
+const MARBLE_PLACEMENT_BUFFER = 50; // ms buffer after last marble placement
+
+// ============================================
 // Module-level cleanup functions
 // ============================================
 let challengeCleanup = null;
@@ -123,6 +129,8 @@ function placeMarbleGroupInGrid(directCount = null) {
     }
   }
 
+  // Collect all boxes that need marbles first
+  const boxesToFill = [];
   let currentRow = gameState.rows[gameState.currentRowIndex];
 
   for (let i = 0; i < marbleCount; i++) {
@@ -148,61 +156,121 @@ function placeMarbleGroupInGrid(directCount = null) {
       emptyBoxIndex = 0;
     }
 
-    // Use helper to create and place marble
+    // Store box to fill later
     const box = currentRow.boxes[emptyBoxIndex];
-    const rowData = createAndPlaceMarble(box);
-    if (rowData) {
-      currentRow = rowData;
-    }
+    boxesToFill.push(box);
 
-    // Check for collapses and update currentRow if a new row was created
-    const newRow = handleCollapse();
-    if (newRow) {
-      currentRow = newRow;
-    }
+    // Temporarily mark as filled so next iteration finds next empty box
+    const tempMarker = document.createElement('div');
+    tempMarker.className = 'temp-marker';
+    box.appendChild(tempMarker);
   }
 
-  // Ensure there's always at least one regular (non-collapsed) row available
-  const hasRegularRow = gameState.rows.some((row) => !row.isCollapsed);
-  if (!hasRegularRow) {
-    addRow();
-    gameState.currentRowIndex = gameState.rows.length - 1;
-  } else {
-    // Check if current row is now full and we need to prepare the next row
-    if (currentRow && currentRow.boxes.length > 0) {
-      const currentRowFull = currentRow.boxes.every((box) =>
-        box.hasChildNodes(),
-      );
-      if (
-        currentRowFull &&
-        gameState.currentRowIndex === gameState.rows.length - 1
-      ) {
-        // Current row is full and it's the last row, so add a new empty row
-        addRow();
-        // Move to the new row
-        gameState.currentRowIndex++;
+  // Remove temp markers
+  boxesToFill.forEach(box => {
+    const marker = box.querySelector('.temp-marker');
+    if (marker) marker.remove();
+  });
+
+  // Helper function for post-placement cleanup
+  const finishPlacement = () => {
+    // Ensure there's always at least one regular (non-collapsed) row available
+    const hasRegularRow = gameState.rows.some((row) => !row.isCollapsed);
+    if (!hasRegularRow) {
+      addRow();
+      gameState.currentRowIndex = gameState.rows.length - 1;
+    } else {
+      // Check if current row is now full and we need to prepare the next row
+      let currentRow = gameState.rows[gameState.currentRowIndex];
+      if (currentRow && currentRow.boxes.length > 0) {
+        const currentRowFull = currentRow.boxes.every((box) =>
+          box.hasChildNodes(),
+        );
+        if (
+          currentRowFull &&
+          gameState.currentRowIndex === gameState.rows.length - 1
+        ) {
+          // Current row is full and it's the last row, so add a new empty row
+          addRow();
+          // Move to the new row
+          gameState.currentRowIndex++;
+        }
       }
     }
+
+    // Clear the marble group (only if we were using it)
+    if (directCount === null) {
+      const marbleGroup = document.getElementById("marble-group");
+      marbleGroup.innerHTML = "";
+
+      // Generate new marbles for the next round
+      createMarblesInGroup();
+    }
+
+    // Update displays - check if level changed for animation
+    const previousLevel = gameState.currentLevel;
+    const { newLevel, leveledUp } = checkForLevelUpAndDifficultyChange(previousLevel);
+
+    display.updateMarbles();
+    display.updateLevel(leveledUp);
+
+    // Ensure there's always an empty row at the bottom
+    ensureEmptyRowBelowLastRow();
+
+    // Update target-box highlight for mini-game placements
+    if (directCount !== null) {
+      document.querySelectorAll(".box.target-box").forEach((box) => {
+        box.classList.remove("target-box");
+      });
+      const firstEmptyBox = getFirstEmptyBox();
+      if (firstEmptyBox) {
+        firstEmptyBox.box.classList.add("target-box");
+      }
+    }
+  };
+
+  // Place marbles with staggering only if from mini-game (directCount is set)
+  if (directCount !== null) {
+    let currentRow = gameState.rows[gameState.currentRowIndex];
+
+    boxesToFill.forEach((box, index) => {
+      setTimeout(() => {
+        // Create and place marble
+        const rowData = createAndPlaceMarble(box);
+        if (rowData) {
+          currentRow = rowData;
+        }
+
+        // Check for collapses after each marble
+        const newRow = handleCollapse();
+        if (newRow) {
+          currentRow = newRow;
+        }
+      }, index * MARBLE_STAGGER_DELAY);
+    });
+
+    // Run cleanup after all marbles are placed
+    const totalDelay = boxesToFill.length * MARBLE_STAGGER_DELAY + MARBLE_PLACEMENT_BUFFER;
+    setTimeout(finishPlacement, totalDelay);
+  } else {
+    // No staggering for normal placement
+    let currentRow = gameState.rows[gameState.currentRowIndex];
+
+    boxesToFill.forEach(box => {
+      const rowData = createAndPlaceMarble(box);
+      if (rowData) {
+        currentRow = rowData;
+      }
+
+      const newRow = handleCollapse();
+      if (newRow) {
+        currentRow = newRow;
+      }
+    });
+
+    // Run cleanup immediately
+    finishPlacement();
   }
-
-  // Clear the marble group (only if we were using it)
-  if (directCount === null) {
-    const marbleGroup = document.getElementById("marble-group");
-    marbleGroup.innerHTML = "";
-
-    // Generate new marbles for the next round
-    createMarblesInGroup();
-  }
-
-  // Update displays - check if level changed for animation
-  const previousLevel = gameState.currentLevel;
-  const { newLevel, leveledUp } = checkForLevelUpAndDifficultyChange(previousLevel);
-
-  display.updateMarbles();
-  display.updateLevel(leveledUp);
-
-  // Ensure there's always an empty row at the bottom
-  ensureEmptyRowBelowLastRow();
 }
 
 // Setup custom drag handlers for marble group using mouse events
@@ -1616,28 +1684,27 @@ function validateMiniGameAnswer(boxesFromPreciseMode = null) {
         box.appendChild(marble);
       });
 
-      // Start collapse animation after brief delay
+      // Start collapse animation immediately
+      const firstEmptyBox = getFirstEmptyBox();
+
+      if (firstEmptyBox && modalContent) {
+        const modalRect = modalContent.getBoundingClientRect();
+        const targetRect = firstEmptyBox.box.getBoundingClientRect();
+
+        const deltaX = targetRect.left + (targetRect.width / 2) - (modalRect.left + modalRect.width / 2);
+        const deltaY = targetRect.top + (targetRect.height / 2) - (modalRect.top + modalRect.height / 2);
+
+        modalContent.style.setProperty('--collapse-x', `${deltaX}px`);
+        modalContent.style.setProperty('--collapse-y', `${deltaY}px`);
+        modalContent.classList.add("collapse-to-target");
+      }
+
+      const modalBackground = modal.querySelector(".modal-background");
+      if (modalBackground) {
+        modalBackground.classList.add("fade-out");
+      }
+
       setTimeout(() => {
-        const firstEmptyBox = getFirstEmptyBox();
-
-        if (firstEmptyBox && modalContent) {
-          const modalRect = modalContent.getBoundingClientRect();
-          const targetRect = firstEmptyBox.box.getBoundingClientRect();
-
-          const deltaX = targetRect.left + (targetRect.width / 2) - (modalRect.left + modalRect.width / 2);
-          const deltaY = targetRect.top + (targetRect.height / 2) - (modalRect.top + modalRect.height / 2);
-
-          modalContent.style.setProperty('--collapse-x', `${deltaX}px`);
-          modalContent.style.setProperty('--collapse-y', `${deltaY}px`);
-          modalContent.classList.add("collapse-to-target");
-        }
-
-        const modalBackground = modal.querySelector(".modal-background");
-        if (modalBackground) {
-          modalBackground.classList.add("fade-out");
-        }
-
-        setTimeout(() => {
           if (modalContent) {
             modalContent.classList.remove("collapse-to-target");
             modalContent.classList.remove("shine");
@@ -1663,24 +1730,11 @@ function validateMiniGameAnswer(boxesFromPreciseMode = null) {
           // Generate new target number after mini game closes
           generateTargetNumber();
 
-          setTimeout(() => {
-            // Clear any ghost marbles from main grid before placing marbles
-            clearAllGhostMarbles();
-
-            placeMarbleGroupInGrid(correctAnswer);
-
-            // Update target-box highlight AFTER placing marbles
-            document.querySelectorAll(".box.target-box").forEach((box) => {
-              box.classList.remove("target-box");
-            });
-            const firstEmptyBox = getFirstEmptyBox();
-            if (firstEmptyBox) {
-              firstEmptyBox.box.classList.add("target-box");
-            }
-          }, 100);
+          // Start placing marbles in main grid after modal has fully collapsed
+          clearAllGhostMarbles();
+          placeMarbleGroupInGrid(correctAnswer);
         }, 600);
-      }, 100);
-    }, 300);
+    }, 100); // Reduced delay for faster response
   } else {
     // Show error feedback (red boxes)
     drawnBoxes.forEach((box) => box.classList.add("feedback-incorrect"));
@@ -1747,41 +1801,46 @@ function fillDrawnBoxes(boxes, isCorrect) {
     // Show success feedback (green boxes with ghost marbles still visible)
     boxes.forEach((box) => box.classList.add("feedback-correct"));
 
-    // After brief delay, clear ghost marbles and add real marbles
+    // Wait briefly to show green feedback, then start staggering
     setTimeout(() => {
-      // Clear ghost marbles
-      boxes.forEach((box) => {
-        const ghost = box.querySelector('.ghost-marble');
-        if (ghost) ghost.remove();
-      });
-
-      // Remove green feedback
+      // Remove green feedback from all boxes before starting animation
       boxes.forEach((box) => box.classList.remove("feedback-correct"));
 
-      // Add real marbles using helper
-      boxes.forEach((box) => {
-        createAndPlaceMarble(box);
-        // Check for collapses after adding each marble
-        checkForCollapses();
+      // Convert ghost marbles to real marbles one by one
+      boxes.forEach((box, index) => {
+        setTimeout(() => {
+          // Clear ghost marble
+          const ghost = box.querySelector('.ghost-marble');
+          if (ghost) ghost.remove();
+
+          // Add real marble
+          createAndPlaceMarble(box);
+          // Check for collapses after adding each marble
+          checkForCollapses();
+        }, index * MARBLE_STAGGER_DELAY);
       });
+    }, 200); // Brief delay to show green feedback
 
-      // Update displays - check if level changed for animation
-      const previousLevel = gameState.currentLevel;
-      const { newLevel, leveledUp } = checkForLevelUpAndDifficultyChange(previousLevel);
+    // Wait for all marbles to be placed before updating displays
+    const totalDelay = 200 + boxes.length * MARBLE_STAGGER_DELAY + MARBLE_PLACEMENT_BUFFER;
+    setTimeout(() => {
+        // Update displays - check if level changed for animation
+        const previousLevel = gameState.currentLevel;
+        const { newLevel, leveledUp } = checkForLevelUpAndDifficultyChange(previousLevel);
 
-      display.updateMarbles();
-      display.updateLevel(leveledUp);
+        display.updateMarbles();
+        display.updateLevel(leveledUp);
 
-      // Check if we need to add a new row FIRST
-      ensureEmptyRowAvailable();
+        // Check if we need to add a new row FIRST
+        ensureEmptyRowAvailable();
 
-      // Also ensure there's an empty row below the last row
-      ensureEmptyRowBelowLastRow();
+        // Also ensure there's an empty row below the last row
+        ensureEmptyRowBelowLastRow();
 
-      // Remove unnecessary empty rows
-      removeUnnecessaryEmptyRows();
+        // Remove unnecessary empty rows
+        removeUnnecessaryEmptyRows();
 
-      // Then update currentRowIndex to the first row with empty boxes
+        // Then update currentRowIndex to the first row with empty boxes
       for (let i = 0; i < gameState.rows.length; i++) {
         const row = gameState.rows[i];
         const hasEmptyBoxes =
@@ -1845,7 +1904,7 @@ function fillDrawnBoxes(boxes, isCorrect) {
           firstEmptyBox.box.classList.add("target-box");
         }
       }
-    }, 300);
+    }, totalDelay); // Wait for all marbles to be placed
   } else {
     // Show error feedback
     boxes.forEach((box) => box.classList.add("feedback-incorrect"));
