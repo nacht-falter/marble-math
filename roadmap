@@ -5,7 +5,7 @@
 - [ ] Add some nice visuals to show scored points, level-ups etc. once score system is implemented
 - [x] Disable text selection on grid to avoid accidental text selection while drawing or dragging.
 - [ ] Add a main menu screen with "Start game" button and some settings.
-- [ ] Display some instructions popup on starting the game and when switching modes. Maybe with short animations on how to play?
+- [x] Display some instructions popup on starting the game and when switching modes.
 - [x] Don't show thousands position on collapsed hundreds boxes after the first 1000 collapse (e.g. 100 instead of 1100).
 - [x] Responsive Layout
 - [x] Hide target display content while minigame modal is active
@@ -16,6 +16,8 @@
 - [x] Improve mini game layout and styles.
 - [x] Show mode indicator in top left corner underneath the level badge.
 - [x] Once lives are implemented hearts underneath the streak badge (lost hearts are transparent).
+- [x] Fix instruction modal and result modal layout
+- [x] Add numbers to empty fields
 - [ ] Add dynamicly updating subtle gradient to main game container representing the users "health" (red = 1 heart, green = 5 hearts)
 
 ## Gameplay
@@ -27,7 +29,7 @@
 - [x] Balance streak multipliers, adjust streak system (10 correct answers to trigger mini game, no scaling).
 - [x] Introduce some losing condition for game over (e.g. count mistakes, introduce lives, lives could be regained on milestones or with mini games).
 - [x] Improve draw mode: allow clicking any empty box (not just first) and show ghost marbles immediately for better motor control accessibility.
-- [ ] Division mini game problems are too hard.
+- [x] Mini game problems are too hard. Make the progression from easy to hard much slower.
 
 # Bugfixes
 - [x] Fix messed up grid after 200 collapse appears
