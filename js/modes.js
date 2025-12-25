@@ -1186,57 +1186,147 @@ function showMilestonePrompt(marbleCount) {
 function generateMathProblem(level) {
   let num1, num2, answer, text, currentCap;
 
-  // Define allowed operations based on level
+  // Define allowed operations based on level (every 3 levels)
   const operations = [];
   if (level >= 1) operations.push(0); // Addition
-  if (level >= 2) operations.push(1); // Subtraction
-  if (level >= 3) operations.push(2); // Multiplication
-  if (level >= 4) operations.push(3); // Division
+  if (level >= 4) operations.push(1); // Subtraction
+  if (level >= 7) operations.push(2); // Multiplication
+  if (level >= 10) operations.push(3); // Division
 
   const operation = operations[Math.floor(Math.random() * operations.length)];
 
-  // Define a small offset per level to scale difficulty
-  const offset = level - 1;
-
-  // Level-specific settings
-  if (level <= 2) {
+  // Levels 1-3: Addition only, cap 15
+  if (level <= 3) {
     currentCap = 15;
 
     switch (operation) {
       case 0: // Addition
         do {
-          num1 = Math.floor(Math.random() * (8 + offset)) + 2;
-          num2 = Math.floor(Math.random() * (8 + offset)) + 2;
+          num1 = Math.floor(Math.random() * 7) + 2; // 2-8
+          num2 = Math.floor(Math.random() * 7) + 2; // 2-8
+          answer = num1 + num2;
+        } while (answer > currentCap);
+        text = `${num1} + ${num2}`;
+        break;
+    }
+
+  // Levels 4-6: Addition + Subtraction, cap 20
+  } else if (level <= 6) {
+    currentCap = 20;
+
+    switch (operation) {
+      case 0: // Addition
+        do {
+          num1 = Math.floor(Math.random() * 8) + 5; // 5-12
+          num2 = Math.floor(Math.random() * 8) + 5; // 5-12
           answer = num1 + num2;
         } while (answer > currentCap);
         text = `${num1} + ${num2}`;
         break;
 
       case 1: // Subtraction
-        num1 = Math.floor(Math.random() * (8 + offset)) + 8;
-        num2 = Math.floor(Math.random() * (5 + offset)) + 2;
-        answer = num1 - num2;
+        do {
+          num1 = Math.floor(Math.random() * 9) + 10; // 10-18
+          num2 = Math.floor(Math.random() * 6) + 3; // 3-8
+          answer = num1 - num2;
+        } while (answer > currentCap || answer < 2);
         text = `${num1} − ${num2}`;
         break;
     }
 
-  } else if (level <= 4) {
+  // Levels 7-9: Add Multiplication, cap 30
+  } else if (level <= 9) {
     currentCap = 30;
 
     switch (operation) {
       case 0: // Addition
         do {
-          num1 = Math.floor(Math.random() * (12 + offset)) + 8;
-          num2 = Math.floor(Math.random() * (12 + offset)) + 8;
+          num1 = Math.floor(Math.random() * 8) + 8; // 8-15
+          num2 = Math.floor(Math.random() * 8) + 8; // 8-15
           answer = num1 + num2;
-        } while (answer > currentCap || answer < 15);
+        } while (answer > currentCap);
         text = `${num1} + ${num2}`;
         break;
 
       case 1: // Subtraction
         do {
-          num1 = Math.floor(Math.random() * (20 + offset)) + 20;
-          num2 = Math.floor(Math.random() * (12 + offset)) + 5;
+          num1 = Math.floor(Math.random() * 11) + 15; // 15-25
+          num2 = Math.floor(Math.random() * 8) + 5; // 5-12
+          answer = num1 - num2;
+        } while (answer > currentCap || answer < 5);
+        text = `${num1} − ${num2}`;
+        break;
+
+      case 2: // Multiplication (times tables)
+        do {
+          num1 = Math.floor(Math.random() * 5) + 2; // 2-6
+          num2 = Math.floor(Math.random() * 5) + 2; // 2-6
+          answer = num1 * num2;
+        } while (answer > currentCap);
+        text = `${num1} × ${num2}`;
+        break;
+    }
+
+  // Levels 10-12: Add Division, cap 40
+  } else if (level <= 12) {
+    currentCap = 40;
+
+    switch (operation) {
+      case 0: // Addition
+        do {
+          num1 = Math.floor(Math.random() * 12) + 10; // 10-21
+          num2 = Math.floor(Math.random() * 12) + 10; // 10-21
+          answer = num1 + num2;
+        } while (answer > currentCap);
+        text = `${num1} + ${num2}`;
+        break;
+
+      case 1: // Subtraction
+        do {
+          num1 = Math.floor(Math.random() * 20) + 25; // 25-44
+          num2 = Math.floor(Math.random() * 15) + 8; // 8-22
+          answer = num1 - num2;
+        } while (answer > currentCap || answer < 10);
+        text = `${num1} − ${num2}`;
+        break;
+
+      case 2: // Multiplication
+        do {
+          num1 = Math.floor(Math.random() * 6) + 3; // 3-8
+          num2 = Math.floor(Math.random() * 6) + 3; // 3-8
+          answer = num1 * num2;
+        } while (answer > currentCap);
+        text = `${num1} × ${num2}`;
+        break;
+
+      case 3: // Division (friendly divisors)
+        do {
+          num2 = [2, 3, 4, 5][Math.floor(Math.random() * 4)]; // Only 2, 3, 4, 5
+          answer = Math.floor(Math.random() * 15) + 8; // 8-22
+          num1 = answer * num2;
+        } while (answer > currentCap);
+        text = `${num1} ÷ ${num2}`;
+        break;
+    }
+
+  // Levels 13+: All operations, cap 50
+  } else {
+    currentCap = 50;
+
+    switch (operation) {
+      case 0: // Addition
+        do {
+          num1 = Math.floor(Math.random() * 15) + 15; // 15-29
+          num2 = Math.floor(Math.random() * 15) + 15; // 15-29
+          answer = num1 + num2;
+        } while (answer > currentCap);
+        text = `${num1} + ${num2}`;
+        break;
+
+      case 1: // Subtraction
+        do {
+          num1 = Math.floor(Math.random() * 25) + 40; // 40-64
+          num2 = Math.floor(Math.random() * 20) + 10; // 10-29
           answer = num1 - num2;
         } while (answer > currentCap || answer < 15);
         text = `${num1} − ${num2}`;
@@ -1244,55 +1334,19 @@ function generateMathProblem(level) {
 
       case 2: // Multiplication
         do {
-          num1 = Math.floor(Math.random() * (5 + offset)) + 3;
-          num2 = Math.floor(Math.random() * (5 + offset)) + 3;
+          num1 = Math.floor(Math.random() * 7) + 4; // 4-10
+          num2 = Math.floor(Math.random() * 7) + 4; // 4-10
           answer = num1 * num2;
         } while (answer > currentCap);
         text = `${num1} × ${num2}`;
         break;
 
       case 3: // Division
-        answer = Math.floor(Math.random() * (13 + offset)) + 15;
-        num2 = Math.floor(Math.random() * (4 + offset)) + 2;
-        num1 = answer * num2;
-        text = `${num1} ÷ ${num2}`;
-        break;
-    }
-
-  } else {
-    currentCap = 50;
-
-    switch (operation) {
-      case 0: // Addition
         do {
-          num1 = Math.floor(Math.random() * (20 + offset)) + 15;
-          num2 = Math.floor(Math.random() * (20 + offset)) + 15;
-          answer = num1 + num2;
+          num2 = Math.floor(Math.random() * 6) + 2; // 2-7
+          answer = Math.floor(Math.random() * 20) + 15; // 15-34
+          num1 = answer * num2;
         } while (answer > currentCap);
-        text = `${num1} + ${num2}`;
-        break;
-
-      case 1: // Subtraction
-        num1 = Math.floor(Math.random() * (30 + offset)) + 40;
-        num2 = Math.floor(Math.random() * (20 + offset)) + 10;
-        answer = num1 - num2;
-        if (answer > currentCap) answer = currentCap;
-        text = `${num1} − ${num2}`;
-        break;
-
-      case 2: // Multiplication
-        do {
-          num1 = Math.floor(Math.random() * (8 + offset)) + 2;
-          num2 = Math.floor(Math.random() * (8 + offset)) + 2;
-          answer = num1 * num2;
-        } while (answer > currentCap);
-        text = `${num1} × ${num2}`;
-        break;
-
-      case 3: // Division
-        answer = Math.floor(Math.random() * (25 + offset)) + 20;
-        num2 = Math.floor(Math.random() * (5 + offset)) + 2;
-        num1 = answer * num2;
         text = `${num1} ÷ ${num2}`;
         break;
     }
