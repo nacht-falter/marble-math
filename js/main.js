@@ -6,6 +6,7 @@ import {
   setupChallengeHandlersPrecise,
   startChallenge,
   updateModeUI,
+  showModeChangeInstructions,
 } from "./modes.js";
 import { GAME_CONFIG } from "./config.js";
 
@@ -339,6 +340,9 @@ const display = {
 
 // Grid no longer scrolls - rows naturally disappear at top when overflow occurs
 
+// Track if this is the first game init
+let isFirstGameInit = true;
+
 // Initialize the game with one row
 function initGame() {
   const gridContainer = document.getElementById("grid-container");
@@ -376,6 +380,12 @@ function initGame() {
 
   addRow();
   createMarblesInGroup();
+
+  // Show practice mode modal only on first load
+  if (isFirstGameInit) {
+    showModeChangeInstructions("practice");
+    isFirstGameInit = false;
+  }
 }
 
 // Start the game when page loads
@@ -435,6 +445,7 @@ document.addEventListener("DOMContentLoaded", () => {
       initGame();
     });
   }
+
 });
 
 export {

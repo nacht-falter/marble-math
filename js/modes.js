@@ -86,6 +86,11 @@ function checkForLevelUpAndDifficultyChange(previousLevel) {
     // If visual feedback setting changed, update UI classes
     if (previousVisualFeedback !== gameState.challengeVisualFeedback) {
       updateModeUI();
+
+      // Show modal when entering precise mode (visual feedback disabled)
+      if (!gameState.challengeVisualFeedback) {
+        showModeChangeInstructions("precise");
+      }
     }
   }
 
@@ -2100,6 +2105,51 @@ function ensureEmptyRowBelowLastRow() {
   }
 }
 
+// Show mode change instructions
+function showModeChangeInstructions(mode) {
+  const modal = document.getElementById("mode-change-modal");
+  const title = document.getElementById("mode-change-title");
+  const instructionContainer = document.getElementById("mode-change-instruction");
+  const continueBtn = document.getElementById("mode-change-continue-btn");
+
+  if (!modal || !title || !instructionContainer || !continueBtn) return;
+
+  if (mode === "practice") {
+    title.textContent = "🖐️ Practice Mode";
+    instructionContainer.innerHTML = `
+      <p>Drag marbles into the grid to practice. Start Challenge mode when you're ready!</p>
+    `;
+  } else if (mode === "challenge") {
+    title.textContent = "🎯 Challenge Mode";
+    instructionContainer.innerHTML = `
+      <p>Draw marbles to match the target. Build streaks to unlock mini-games!</p>
+    `;
+  } else if (mode === "precise") {
+    title.textContent = "⚡ Precision Mode";
+    instructionContainer.innerHTML = `
+      <p>No preview! Click the exact target box.</p>
+    `;
+  }
+
+  modal.style.display = "flex";
+
+  // Remove any existing listeners and add new one
+  const newBtn = continueBtn.cloneNode(true);
+  continueBtn.parentNode.replaceChild(newBtn, continueBtn);
+
+  const closeModal = () => {
+    modal.style.display = "none";
+  };
+
+  newBtn.addEventListener("click", closeModal);
+
+  // Also allow background click to close
+  const background = modal.querySelector(".modal-background");
+  if (background) {
+    background.addEventListener("click", closeModal, { once: true });
+  }
+}
+
 // Start the challenge - one-way transition from practice to challenge mode
 function startChallenge() {
   // Can only start challenge from practice mode
@@ -2121,6 +2171,9 @@ function startChallenge() {
 
   // Activate all stat badges immediately
   display.updateAll();
+
+  // Show mode change instructions
+  showModeChangeInstructions("challenge");
 }
 
 // Update UI based on current mode
@@ -2250,4 +2303,5 @@ export {
   startChallenge,
   showMiniGame,
   showGameOver,
+  showModeChangeInstructions,
 };

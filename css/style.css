@@ -650,17 +650,12 @@ body {
   white-space: nowrap;
 }
 
-/* Instructions modal */
+/* Instructions modal - specific overrides */
 .instructions-modal-content {
-  background-color: var(--bg-body);
-  border-radius: 12px;
-  padding: 30px;
   max-width: 600px;
-  width: 90vw;
   max-height: 80vh;
   overflow-y: auto;
-  position: relative;
-  box-shadow: var(--shadow-lg);
+  text-align: left;
 }
 
 .instructions-modal-content h2 {
@@ -1459,6 +1454,7 @@ button:hover {
   background-color: rgba(0, 0, 0, 0.5);
   animation: modalFadeIn 0.3s ease-out;
   transition: opacity 0.5s ease-out;
+  z-index: 1;
 }
 
 .modal-background.fade-out {
@@ -1474,6 +1470,8 @@ button:hover {
   width: 90%;
   text-align: center;
   animation: modalSlideIn 0.4s ease-out;
+  position: relative;
+  z-index: 2;
 }
 
 .modal-content h2 {
@@ -1506,6 +1504,26 @@ button:hover {
 .modal-stats p {
   margin: 8px 0;
   color: var(--text-secondary);
+}
+
+/* Mode change modal specific styles */
+.mode-change-content {
+  max-width: 400px;
+  padding: 20px 30px;
+  position: relative;
+  z-index: 1;
+}
+
+.mode-instruction {
+  margin: 10px 0 0 0;
+  text-align: center;
+}
+
+.mode-instruction p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1.5;
 }
 
 .modal-close-btn {
@@ -1563,6 +1581,8 @@ button:hover {
 /* Game Over Modal Styles */
 .game-over-content {
   max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .game-over-stats {
@@ -1602,6 +1622,22 @@ button:hover {
 @media (max-width: 600px) {
   .game-over-stats {
     grid-template-columns: 1fr;
+    gap: 10px;
+    margin: 15px 0;
+    padding: 12px;
+  }
+
+  .stat-item {
+    padding: 10px;
+    gap: 5px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+  }
+
+  .stat-value {
+    font-size: 24px;
   }
 }
 

@@ -155,11 +155,9 @@
 
       <!-- Game Over modal -->
       <div id="game-over-modal" class="modal" style="display: none">
+        <div class="modal-background"></div>
         <div class="modal-content game-over-content">
-          <h2>💔 Game Over!</h2>
-          <p class="modal-message">
-            You ran out of lives, but you did amazing!
-          </p>
+          <h2>Game Over!</h2>
           <div class="game-over-stats">
             <div class="stat-item">
               <span class="stat-label">Final Level</span>
@@ -184,13 +182,26 @@
         </div>
       </div>
 
+      <!-- Mode change instruction modal -->
+      <div id="mode-change-modal" class="modal" style="display: none">
+        <div class="modal-background"></div>
+        <div class="modal-content mode-change-content">
+          <h2 id="mode-change-title">🎯 Challenge Mode</h2>
+          <div id="mode-change-instruction" class="mode-instruction">
+            <!-- Mode-specific instruction will be inserted here -->
+          </div>
+          <div class="modal-buttons">
+            <button class="modal-primary-btn" id="mode-change-continue-btn">Got it!</button>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- Instructions modal -->
     <div id="instructions-modal" class="modal" style="display: none">
       <div class="modal-background"></div>
-      <div class="modal-wrapper">
-        <div class="instructions-modal-content">
+      <div class="modal-content instructions-modal-content">
           <button class="modal-close-btn" id="instructions-close-btn">×</button>
           <h2>How to Play</h2>
 	  <div class="instructions-content">
@@ -216,7 +227,6 @@
 	      increases!
 	    </p>
 	  </div>
-        </div>
       </div>
     </div>
 
