@@ -27,6 +27,13 @@ function createRow(startValue) {
   for (let i = 0; i < 10; i++) {
     const box = document.createElement("div");
     box.className = "box";
+
+    // Add subtle number label (1-indexed)
+    const numberLabel = document.createElement("div");
+    numberLabel.className = "box-number";
+    numberLabel.textContent = startValue + i + 1;
+    box.appendChild(numberLabel);
+
     boxes.push(box);
     row.appendChild(box);
   }

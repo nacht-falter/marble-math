@@ -383,6 +383,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
   transition:
     background-color 0.2s,
     border-color 0.2s;
@@ -390,6 +391,23 @@ body {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+}
+
+.box-number {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 2vw;
+  font-weight: 600;
+  color: var(--text-primary);
+  opacity: 0.35;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Hide box number when box contains a marble */
+.box:has(.marble) .box-number {
+  display: none;
 }
 
 /* Only show hover effect in active game phase (not practice mode) */
@@ -888,6 +906,10 @@ button:hover {
     width: 40px;
     height: 40px;
     font-size: 14px;
+  }
+
+  .box-number {
+    font-size: 11px;
   }
 
   .target-number-display .marble-icon {

@@ -142,7 +142,7 @@ function placeMarbleGroupInGrid(directCount = null) {
     }
 
     let emptyBoxIndex = currentRow.boxes.findIndex(
-      (box) => !box.hasChildNodes(),
+      (box) => !hasRealMarble(box) && !box.querySelector('.temp-marker'),
     );
 
     if (emptyBoxIndex === -1) {
@@ -184,7 +184,7 @@ function placeMarbleGroupInGrid(directCount = null) {
       let currentRow = gameState.rows[gameState.currentRowIndex];
       if (currentRow && currentRow.boxes.length > 0) {
         const currentRowFull = currentRow.boxes.every((box) =>
-          box.hasChildNodes(),
+          hasRealMarble(box),
         );
         if (
           currentRowFull &&
@@ -454,7 +454,7 @@ function setupDragHandlers() {
       // Calculate how many marbles fit in the row containing the first empty box
       const targetRow = gameState.rows[firstEmptyBox.rowIndex];
       const emptyBoxesInRow = targetRow.boxes.filter(
-        (box) => !box.hasChildNodes(),
+        (box) => !hasRealMarble(box),
       ).length;
       const totalMarbles = marbleGroup.querySelectorAll(".marble").length;
 
@@ -930,7 +930,7 @@ function setupChallengeHandlersPrecise() {
     gameState.rows.forEach((row) => {
       if (!row.isCollapsed && row.boxes) {
         row.boxes.forEach((b) => {
-          if (!b.hasChildNodes()) {
+          if (!hasRealMarble(b)) {
             allEmptyBoxes.push(b);
           }
         });
@@ -1572,7 +1572,7 @@ function setupMiniGridPreciseMode() {
     const allBoxes = getAllMiniBoxes();
 
     // Get all empty boxes
-    const allEmptyBoxes = allBoxes.filter(b => !b.hasChildNodes());
+    const allEmptyBoxes = allBoxes.filter(b => !hasRealMarble(b));
 
     // Find the index of the clicked box in empty boxes
     const clickedIndex = allEmptyBoxes.indexOf(box);
@@ -1844,12 +1844,12 @@ function fillDrawnBoxes(boxes, isCorrect) {
       for (let i = 0; i < gameState.rows.length; i++) {
         const row = gameState.rows[i];
         const hasEmptyBoxes =
-          !row.isCollapsed && row.boxes.some((box) => !box.hasChildNodes());
+          !row.isCollapsed && row.boxes.some((box) => !hasRealMarble(box));
 
         // Debug: show what's in the boxes
         if (!row.isCollapsed && row.boxes) {
           const boxStates = row.boxes.map((box) => {
-            if (!box.hasChildNodes()) return "EMPTY";
+            if (!hasRealMarble(box)) return "EMPTY";
             const children = Array.from(box.childNodes);
             return children.map((c) => c.className || c.nodeName).join(",");
           });
@@ -1935,7 +1935,7 @@ function ensureEmptyRowAvailable() {
   const currentRow = gameState.rows[gameState.currentRowIndex];
 
   if (currentRow && currentRow.boxes.length > 0) {
-    const currentRowFull = currentRow.boxes.every((box) => box.hasChildNodes());
+    const currentRowFull = currentRow.boxes.every((box) => hasRealMarble(box));
 
     if (
       currentRowFull &&
@@ -1968,7 +1968,7 @@ function removeUnnecessaryEmptyRows() {
   // Count total empty boxes
   let totalEmptyBoxes = 0;
   regularRows.forEach(row => {
-    totalEmptyBoxes += row.boxes.filter(b => !b.hasChildNodes()).length;
+    totalEmptyBoxes += row.boxes.filter(b => !hasRealMarble(b)).length;
   });
 
   // Find the last row that has ANY content
@@ -1977,7 +1977,7 @@ function removeUnnecessaryEmptyRows() {
 
   for (let i = regularRows.length - 1; i >= 0; i--) {
     const row = regularRows[i];
-    if (row.boxes.some((box) => box.hasChildNodes())) {
+    if (row.boxes.some((box) => hasRealMarble(box))) {
       lastRowWithContent = row;
       lastRowWithContentIndex = i;
       break;
@@ -2029,7 +2029,7 @@ function removeUnnecessaryEmptyRows() {
   const rowsToRemove = [];
   for (let i = regularRows.length - 1; i > lastRowWithContentIndex; i--) {
     const row = regularRows[i];
-    const isEmpty = row.boxes.every((box) => !box.hasChildNodes());
+    const isEmpty = row.boxes.every((box) => !hasRealMarble(box));
 
     if (isEmpty) {
       // Only remove if we'd still have enough empty boxes after removal
@@ -2077,7 +2077,7 @@ function ensureEmptyRowBelowLastRow() {
   // Count total empty boxes available
   let totalEmptyBoxes = 0;
   regularRows.forEach(row => {
-    totalEmptyBoxes += row.boxes.filter(b => !b.hasChildNodes()).length;
+    totalEmptyBoxes += row.boxes.filter(b => !hasRealMarble(b)).length;
   });
 
   if (gameState.gameMode === "challenge") {
