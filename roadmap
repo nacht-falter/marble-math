@@ -18,7 +18,7 @@
 - [x] Once lives are implemented hearts underneath the streak badge (lost hearts are transparent).
 - [x] Fix instruction modal and result modal layout
 - [x] Add numbers to empty fields
-- [ ] Add dynamicly updating subtle gradient to main game container representing the users "health" (red = 1 heart, green = 5 hearts)
+- [x] Add dynamicly updating subtle gradient to main game container representing the users "health" (red = 1 heart, green = 5 hearts)
 
 ## Gameplay
 - [x] Add score system with streaks which build up until a minigame pops up.

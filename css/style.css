@@ -74,6 +74,9 @@
   --shadow-marble: 2px 2px 4px rgba(0, 0, 0, 0.3);
   --text-shadow-marble: 1px 1px 2px rgba(0, 0, 0, 0.5);
   --text-shadow-box: 2px 2px 4px rgba(0, 0, 0, 0.5);
+
+  /* Health shadow (dynamically updated based on lives) */
+  --health-shadow-color: rgba(39, 174, 96, 0.15); /* Default: subtle green */
 }
 
 * {
@@ -107,6 +110,8 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  box-shadow: inset 0 -60px 80px -30px var(--health-shadow-color);
+  transition: box-shadow 0.5s ease;
 }
 
 .mode-controls {
@@ -746,11 +751,12 @@ button:hover {
     margin: 0 auto;
     padding: 15px;
     border-radius: 10px;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-sm), inset 0 -60px 80px -30px var(--health-shadow-color);
     display: flex;
     flex-direction: column;
     flex: 1;
     min-height: 0;
+    transition: box-shadow 0.5s ease;
   }
 
   .grid-container {
@@ -840,11 +846,12 @@ button:hover {
     margin: 0 auto;
     padding: 30px;
     border-radius: 10px;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-sm), inset 0 -60px 80px -30px var(--health-shadow-color);
     display: flex;
     flex-direction: column;
     flex: 1;
     min-height: 0;
+    transition: box-shadow 0.5s ease;
   }
 
   .grid-container {

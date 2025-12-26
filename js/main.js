@@ -327,6 +327,41 @@ const display = {
         changedHeart.classList.remove("bump");
       }, 300);
     }
+
+    // Update health gradient
+    this.updateHealthGradient();
+  },
+
+  updateHealthGradient() {
+    const gameContainer = document.querySelector(".game-container");
+    if (!gameContainer) return;
+
+    // Calculate shadow color based on current lives
+    // 1 heart = red, 5 hearts = green, with smooth transitions in between
+    const lives = gameState.currentLives;
+    const maxLives = gameState.maxLives;
+
+    let shadowColor;
+
+    if (lives === 1) {
+      // Red shadow (danger)
+      shadowColor = "rgba(231, 76, 60, 0.3)";
+    } else if (lives === 2) {
+      // Orange-red shadow
+      shadowColor = "rgba(230, 126, 34, 0.25)";
+    } else if (lives === 3) {
+      // Yellow shadow (warning)
+      shadowColor = "rgba(241, 196, 15, 0.2)";
+    } else if (lives === 4) {
+      // Light green shadow
+      shadowColor = "rgba(46, 204, 113, 0.15)";
+    } else {
+      // Full green shadow (healthy)
+      shadowColor = "rgba(39, 174, 96, 0.15)";
+    }
+
+    // Update CSS variable
+    gameContainer.style.setProperty("--health-shadow-color", shadowColor);
   },
 
   // Update all displays at once
@@ -335,6 +370,7 @@ const display = {
     this.updateStreak();
     this.updateLevel();
     this.updateLives();
+    this.updateHealthGradient();
   }
 };
 
