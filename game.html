@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marble Math</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="game-container">
+      <!-- Stats bar with level and streak -->
+      <div class="stats-bar">
+        <!-- Level display -->
+        <div class="stats-badge level-display" id="level-display">
+          <div class="stats-badge-content">
+            <span class="stats-badge-icon">⭐</span>
+            <span id="level-number" class="stats-badge-number">1</span>
+            <span class="stats-badge-secondary" id="level-score-progress">0/100</span>
+          </div>
+          <div class="stats-badge-progress-container">
+            <div class="stats-badge-progress-fill" id="level-progress-bar-fill"></div>
+          </div>
+          <div class="custom-tooltip">
+            <div class="tooltip-header">Level <span id="tooltip-level">1</span></div>
+            <div class="tooltip-body">
+              Next level at <span id="tooltip-score-needed">100</span> points
+              <div class="tooltip-progress-container">
+                <div class="tooltip-progress-fill" id="tooltip-level-progress"></div>
+              </div>
+              <div class="tooltip-progress-text"><span id="tooltip-score">0</span> / <span id="tooltip-score-needed-2">100</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Marble count -->
+        <div class="stats-badge marble-count" id="marble-count-badge">
+          <div class="stats-badge-content">
+            <span class="stats-badge-icon">🔵</span>
+            <span id="marble-count-number" class="stats-badge-number">0</span>
+          </div>
+          <div class="stats-badge-progress-container">
+            <div class="stats-badge-progress-fill" id="marble-count-progress-fill"></div>
+          </div>
+          <div class="custom-tooltip">
+            <div class="tooltip-header">Total Marbles</div>
+            <div class="tooltip-body">
+              Next milestone at <span id="tooltip-next-collapse">100</span>
+              <div class="tooltip-progress-container">
+                <div class="tooltip-progress-fill" id="tooltip-marble-progress"></div>
+              </div>
+              <div class="tooltip-progress-text"><span id="tooltip-marble-count">0</span> / <span id="tooltip-next-collapse-2">100</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Streak counter -->
+        <div class="stats-badge streak-counter" id="streak-counter">
+          <div class="stats-badge-content">
+            <span class="stats-badge-icon">🔥</span>
+            <span id="streak-number" class="stats-badge-number">0</span>
+            <span id="streak-target" class="stats-badge-secondary">/10</span>
+          </div>
+          <div class="stats-badge-progress-container">
+            <div class="stats-badge-progress-fill" id="streak-progress-bar-fill"></div>
+          </div>
+          <div class="custom-tooltip">
+            <div class="tooltip-header">Streak</div>
+            <div class="tooltip-body">
+              Next Streak Challenge at <span id="tooltip-streak-goal">10</span>
+              <div class="tooltip-progress-container">
+                <div class="tooltip-progress-fill" id="tooltip-streak-progress"></div>
+              </div>
+              <div class="tooltip-progress-text"><span id="tooltip-streak">0</span> / <span id="tooltip-streak-goal-2">10</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid overlay bar (lives, mode indicator, etc.) -->
+      <div class="grid-overlay-bar">
+        <div class="mode-indicator" id="mode-indicator">
+          <span class="mode-icon" id="mode-icon">🖐️</span>
+          <span class="mode-label" id="mode-label">Practice Mode</span>
+        </div>
+        <div class="lives-display" id="lives-display">
+          <span class="heart alive">❤️</span>
+          <span class="heart alive">❤️</span>
+          <span class="heart alive">❤️</span>
+          <span class="heart alive">❤️</span>
+          <span class="heart alive">❤️</span>
+        </div>
+      </div>
+
+      <div class="grid-container" id="grid-container">
+        <!-- Rows will be added dynamically here -->
+      </div>
+
+
+      <div class="marble-group-container">
+        <div id="marble-group-wrapper" class="marble-group-wrapper">
+          <div id="marble-group" class="marble-group">
+            <!-- Marbles to drag will be added here -->
+          </div>
+          <div id="marble-count-indicator" class="marble-count-indicator"></div>
+        </div>
+      </div>
+
+      <div class="target-number-container" style="display: none">
+        <div class="target-number-display" id="target-number-display">
+          <span class="target-plus">+</span>
+          <span id="target-number" class="target-number">0</span>
+          <div class="marble marble-icon"></div>
+        </div>
+      </div>
+
+      <div class="mode-controls">
+        <button id="mode-toggle-btn" class="mode-toggle-btn" disabled>
+          Draw Mode (Locked)
+        </button>
+      </div>
+
+      <div class="controls">
+        <button id="reset-btn">Reset Game</button>
+        <button id="instructions-btn">How to Play</button>
+      </div>
+
+      <!-- Mini-game modal -->
+      <div id="mini-game-modal" class="modal" style="display: none">
+        <div class="modal-background"></div>
+        <div class="mini-game-content">
+          <h2 id="mini-game-title"><span class="fire-emoji">🔥</span> Streak Challenge!</h2>
+          <h3 class="mini-game-problem" id="mini-game-problem">5 + 3</h3>
+          <div id="mini-grid-container" class="mini-grid-container">
+            <!-- Mini-grid will be created here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Milestone prompt modal -->
+      <div id="milestone-modal" class="modal" style="display: none">
+        <div class="modal-content">
+          <h2>🎯 Ready for a Challenge?</h2>
+          <p class="modal-message" id="milestone-message">
+            You've placed 100 marbles! Ready to start the challenge?
+          </p>
+          <p class="modal-submessage">
+            In challenge mode, you'll draw target numbers and build streaks to unlock mini-games!
+          </p>
+          <div class="modal-buttons">
+            <button class="modal-secondary-btn" id="milestone-continue-btn">Not yet, keep practicing</button>
+            <button class="modal-primary-btn" id="milestone-start-btn">Let's go!</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Game Over modal -->
+      <div id="game-over-modal" class="modal" style="display: none">
+        <div class="modal-background"></div>
+        <div class="modal-content game-over-content">
+          <h2>Game Over!</h2>
+          <div class="game-over-stats">
+            <div class="stat-item">
+              <span class="stat-label">Final Level</span>
+              <span class="stat-value" id="final-level">1</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Total Score</span>
+              <span class="stat-value" id="final-score">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Marbles Placed</span>
+              <span class="stat-value" id="final-marbles">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Mini-Games Completed</span>
+              <span class="stat-value" id="final-minigames">0</span>
+            </div>
+          </div>
+          <div class="modal-buttons">
+            <button class="modal-primary-btn" id="play-again-btn">Play Again</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode change instruction modal -->
+      <div id="mode-change-modal" class="modal" style="display: none">
+        <div class="modal-background"></div>
+        <div class="modal-content mode-change-content">
+          <h2 id="mode-change-title">🎯 Challenge Mode</h2>
+          <div id="mode-change-instruction" class="mode-instruction">
+            <!-- Mode-specific instruction will be inserted here -->
+          </div>
+          <div class="modal-buttons">
+            <button class="modal-primary-btn" id="mode-change-continue-btn">Got it!</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Instructions modal -->
+    <div id="instructions-modal" class="modal" style="display: none">
+      <div class="modal-background"></div>
+      <div class="modal-content instructions-modal-content">
+          <button class="modal-close-btn" id="instructions-close-btn">×</button>
+          <h2>How to Play</h2>
+	  <div class="instructions-content">
+	    <p>
+	      <strong>🖐️ Practice Mode:</strong> Drag marbles into the grid to learn how placement and carry-over work.
+	      Explore at your own pace, then tap "Start Challenge!" when you're ready.
+	    </p>
+	    <p>
+	      <strong>🎯 Challenge Mode:</strong> Place the required number of marbles by clicking on the correct box.
+	      Early levels show ghost marble previews as you hover, and you can adjust your answer before releasing.
+	      Accurate answers build your streak and earn points!
+	    </p>
+	    <p>
+	      <strong>⚡ Higher Levels:</strong> As you level up, the challenge gets harder. At level 5+, ghost marble
+	      previews disappear—you'll need to count precisely and click the exact target box on your first try!
+	    </p>
+	    <p>
+	      <strong>🔥 Streak:</strong> Maintain your streak to unlock bonus mini-games with math challenges that award
+	      extra marbles. The higher your streak, the more points each marble is worth.
+	    </p>
+	    <p>
+	      <strong>⭐ Level Up:</strong> Earn points to level up. As you advance, targets grow larger and the difficulty
+	      increases!
+	    </p>
+	  </div>
+      </div>
+    </div>
+
+    <script type="module" src="./js/main.js"></script>
+  </body>
+</html>

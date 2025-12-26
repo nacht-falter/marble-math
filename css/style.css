@@ -707,6 +707,156 @@ body {
   transition: opacity 0.15s ease;
 }
 
+/* Main menu page styles */
+.main-menu-page {
+  flex: 1;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+/* Game content wrapper */
+#game-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.main-menu-container {
+  text-align: center;
+  padding: 40px;
+  max-width: 600px;
+  width: 90%;
+}
+
+.main-menu-logo {
+  margin-bottom: 60px;
+}
+
+.menu-marbles {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.menu-marble {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+  animation: floatMarble 3s ease-in-out infinite;
+}
+
+.menu-marble-1 {
+  background: radial-gradient(circle at 30% 30%, #4a90e2, #2e5c8a);
+  animation-delay: 0s;
+}
+
+.menu-marble-2 {
+  background: radial-gradient(circle at 30% 30%, #9b59b6, #6c3483);
+  animation-delay: 0.5s;
+}
+
+.menu-marble-3 {
+  background: radial-gradient(circle at 30% 30%, #27ae60, #1e8449);
+  animation-delay: 1s;
+}
+
+@keyframes floatMarble {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.main-menu-title {
+  font-size: 4rem;
+  color: white;
+  margin-bottom: 0;
+  font-weight: bold;
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
+  letter-spacing: 2px;
+}
+
+.main-menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+}
+
+.main-menu-primary-btn,
+.main-menu-secondary-btn {
+  padding: 16px 45px;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  width: 100%;
+  max-width: 320px;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.main-menu-primary-btn {
+  background-color: white;
+  color: var(--purple);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.main-menu-primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.main-menu-secondary-btn {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.main-menu-secondary-btn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+/* Responsive adjustments for main menu */
+@media (max-width: 480px) {
+  .main-menu-title {
+    font-size: 2.8rem;
+    letter-spacing: 1px;
+  }
+
+  .menu-marble {
+    width: 40px;
+    height: 40px;
+  }
+
+  .menu-marbles {
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+
+  .main-menu-logo {
+    margin-bottom: 50px;
+  }
+
+  .main-menu-primary-btn,
+  .main-menu-secondary-btn {
+    padding: 14px 35px;
+    font-size: 1rem;
+  }
+}
+
 .modal-close-btn:hover {
   opacity: 0.6;
   background: none !important;

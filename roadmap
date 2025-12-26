@@ -4,7 +4,7 @@
 - [x] Place target number underneath grid in draw and target modes.
 - [ ] Add some nice visuals to show scored points, level-ups etc. once score system is implemented
 - [x] Disable text selection on grid to avoid accidental text selection while drawing or dragging.
-- [ ] Add a main menu screen with "Start game" button and some settings.
+- [x] Add a main menu screen with "Start game" button and some settings.
 - [x] Display some instructions popup on starting the game and when switching modes.
 - [x] Don't show thousands position on collapsed hundreds boxes after the first 1000 collapse (e.g. 100 instead of 1100).
 - [x] Responsive Layout
